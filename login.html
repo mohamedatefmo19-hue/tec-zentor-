@@ -33,155 +33,60 @@
     }
     body.dark-mode .auth-card { background: #1a1f2b; }
 
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-    }
+    .logo-area { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; }
     .logo-icon {
-      font-size: 2rem;
-      color: #2a7de1;
-      background: #e8f0fe;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
+      font-size: 2rem; color: #2a7de1; background: #e8f0fe;
+      width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px;
     }
     body.dark-mode .logo-icon { background: #2a3a5a; color: #6b9ef0; }
     .logo-text { font-weight: 700; font-size: 1.6rem; letter-spacing: -0.5px; color: #0b1e33; }
     body.dark-mode .logo-text { color: #eef2f6; }
-    .logo-text span { color: #2a7de1; }
     .subhead { font-size: 0.9rem; color: #5e6f8d; margin-top: 0.2rem; font-weight: 500; }
 
     .form-group { margin-bottom: 1.4rem; position: relative; }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 0.4rem;
-      color: #1f2a41;
-    }
+    .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: #1f2a41; }
     body.dark-mode .form-group label { color: #d0dae8; }
     .input-wrapper { position: relative; }
-    .input-wrapper i {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #8a9bb5;
-      font-size: 1rem;
-    }
+    .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8a9bb5; font-size: 1rem; }
     .input-wrapper input {
-      width: 100%;
-      padding: 0.9rem 1rem 0.9rem 2.8rem;
-      border: 1.5px solid #dfe6f0;
-      border-radius: 14px;
-      font-size: 1rem;
-      background: #f9fbfe;
-      transition: 0.15s;
-      font-weight: 500;
-      color: #1a253a;
+      width: 100%; padding: 0.9rem 1rem 0.9rem 2.8rem; border: 1.5px solid #dfe6f0; border-radius: 14px;
+      font-size: 1rem; background: #f9fbfe; transition: 0.15s; font-weight: 500; color: #1a253a;
     }
-    body.dark-mode .input-wrapper input {
-      background: #252d3d;
-      border-color: #3b465b;
-      color: #eef2f6;
-    }
-    .input-wrapper input:focus {
-      outline: none;
-      border-color: #2a7de1;
-      box-shadow: 0 0 0 4px rgba(42,125,225,0.15);
-    }
+    body.dark-mode .input-wrapper input { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
+    .input-wrapper input:focus { outline: none; border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.15); }
     .toggle-pwd {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: #8a9bb5;
-      cursor: pointer;
-      font-size: 1rem;
+      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; color: #8a9bb5; cursor: pointer; font-size: 1rem;
     }
     .btn-login {
-      width: 100%;
-      padding: 0.9rem;
-      background: #2a7de1;
-      border: none;
-      border-radius: 40px;
-      font-weight: 700;
-      font-size: 1rem;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.7rem;
-      cursor: pointer;
-      transition: 0.15s;
-      box-shadow: 0 8px 20px -6px rgba(42,125,225,0.3);
+      width: 100%; padding: 0.9rem; background: #2a7de1; border: none; border-radius: 40px;
+      font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; justify-content: center;
+      gap: 0.7rem; cursor: pointer; transition: 0.15s; box-shadow: 0 8px 20px -6px rgba(42,125,225,0.3);
     }
     .btn-login:hover { background: #1a67c4; }
     .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.25);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.25);
+      border-top: 3px solid #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .message-box {
-      margin-top: 1.2rem;
-      padding: 0.8rem 1rem;
-      border-radius: 14px;
-      font-weight: 500;
-      font-size: 0.9rem;
-      display: none;
-      align-items: center;
-      gap: 0.6rem;
+      margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 14px; font-weight: 500; font-size: 0.9rem;
+      display: none; align-items: center; gap: 0.6rem;
     }
-    .message-box.error {
-      display: flex;
-      background: #fde8e8;
-      color: #b3403a;
-      border-left: 5px solid #b3403a;
-    }
-    .message-box.success {
-      display: flex;
-      background: #e3f5e9;
-      color: #1f7840;
-      border-left: 5px solid #1f7840;
-    }
+    .message-box.error { display: flex; background: #fde8e8; color: #b3403a; border-left: 5px solid #b3403a; }
+    .message-box.success { display: flex; background: #e3f5e9; color: #1f7840; border-left: 5px solid #1f7840; }
     body.dark-mode .message-box.error { background: #3a2626; color: #f5b1b1; }
     body.dark-mode .message-box.success { background: #1e3a2a; color: #8bddb0; }
 
     .footer-lang {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #6b7d9c;
-      border-top: 1px solid #e7edf5;
-      padding-top: 1.5rem;
+      display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;
+      font-size: 0.8rem; color: #6b7d9c; border-top: 1px solid #e7edf5; padding-top: 1.5rem;
     }
     body.dark-mode .footer-lang { border-top-color: #2f3b4f; color: #9aabbf; }
-    .link-btn {
-      background: none;
-      border: none;
-      font-weight: 600;
-      color: #2a7de1;
-      cursor: pointer;
-      font-size: 0.85rem;
-      text-decoration: none;
-    }
+    .link-btn { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
     .rtl .input-wrapper i { left: auto; right: 1rem; }
     .rtl .input-wrapper input { padding: 0.9rem 2.8rem 0.9rem 1rem; }
     .rtl .toggle-pwd { right: auto; left: 1rem; }
@@ -190,7 +95,6 @@
 </head>
 <body>
   <div class="auth-card" id="authCard">
-    <!-- شعار Zentor -->
     <div class="logo-area">
       <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
       <div>
@@ -199,14 +103,10 @@
       </div>
     </div>
 
-    <!-- نموذج تسجيل الدخول -->
     <form id="loginForm" autocomplete="off">
       <div class="form-group">
         <label for="emailInput">البريد الإلكتروني</label>
-        <div class="input-wrapper">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="emailInput" placeholder="teacher@zentor.com" required>
-        </div>
+        <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="emailInput" placeholder="teacher@zentor.com" required></div>
       </div>
       <div class="form-group">
         <label for="passwordInput">كلمة المرور</label>
@@ -216,20 +116,14 @@
           <button type="button" class="toggle-pwd" id="togglePwd"><i class="fas fa-eye"></i></button>
         </div>
       </div>
-
       <button type="submit" class="btn-login" id="loginBtn">
         <span id="btnText">تسجيل الدخول</span>
         <span id="btnSpinner" style="display: none;"><span class="spinner"></span></span>
       </button>
     </form>
 
-    <!-- رسالة الخطأ / النجاح -->
-    <div id="messageBox" class="message-box">
-      <i id="msgIcon" class="fas fa-info-circle"></i>
-      <span id="msgText"></span>
-    </div>
+    <div id="messageBox" class="message-box"><i id="msgIcon" class="fas fa-info-circle"></i><span id="msgText"></span></div>
 
-    <!-- تذييل -->
     <div class="footer-lang">
       <button class="link-btn" id="forgotPasswordBtn"><i class="fas fa-key"></i> نسيت كلمة المرور؟</button>
       <div style="display:flex; gap:1rem;">
@@ -241,37 +135,24 @@
   </div>
 
   <script type="module">
-    // استيراد Firebase v11 Modular SDK مباشرة
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      sendPasswordResetEmail,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-    // إعدادات Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyCOBJ22snwOow8xfQnL2WmCusmyS8iWWlk",
-      authDomain: "educore-c3b42.firebaseapp.com",
-      projectId: "educore-c3b42",
-      storageBucket: "educore-c3b42.firebasestorage.app",
-      messagingSenderId: "750509780814",
-      appId: "1:750509780814:web:f57bddff39c7668b3cf81f",
-      measurementId: "G-LF317C03Q0"
+      apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+      authDomain: "zentor-caaf1.firebaseapp.com",
+      projectId: "zentor-caaf1",
+      storageBucket: "zentor-caaf1.firebasestorage.app",
+      messagingSenderId: "681267238383",
+      appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+      measurementId: "G-X80GNJHMS5"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // عناصر DOM
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const loginForm = document.getElementById('loginForm');
@@ -284,152 +165,95 @@
     const forgotBtn = document.getElementById('forgotPasswordBtn');
     const togglePwd = document.getElementById('togglePwd');
 
-    // دوال مساعدة
     function showMessage(text, type = 'error') {
       messageBox.className = `message-box ${type}`;
       msgText.textContent = text;
       msgIcon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
       messageBox.style.display = 'flex';
     }
-    function hideMessage() {
-      messageBox.style.display = 'none';
-      messageBox.className = 'message-box';
-    }
-    function setLoading(isLoading) {
-      loginBtn.disabled = isLoading;
-      btnText.style.display = isLoading ? 'none' : 'inline';
-      btnSpinner.style.display = isLoading ? 'inline' : 'none';
-    }
+    function hideMessage() { messageBox.style.display = 'none'; messageBox.className = 'message-box'; }
+    function setLoading(isLoading) { loginBtn.disabled = isLoading; btnText.style.display = isLoading ? 'none' : 'inline'; btnSpinner.style.display = isLoading ? 'inline' : 'none'; }
 
-    // إظهار / إخفاء كلمة المرور
     togglePwd.addEventListener('click', () => {
-      const type = passwordInput.type === 'password' ? 'text' : 'password';
-      passwordInput.type = type;
-      togglePwd.querySelector('i').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+      passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+      togglePwd.querySelector('i').className = passwordInput.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
     });
 
-    // تسجيل الدخول
     loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideMessage();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-
-      if (!email || !password) {
-        showMessage('يرجى إدخال البريد الإلكتروني وكلمة المرور', 'error');
-        return;
-      }
-
+      e.preventDefault(); hideMessage();
+      const email = emailInput.value.trim(), password = passwordInput.value;
+      if (!email || !password) { showMessage('يرجى إدخال البريد وكلمة المرور', 'error'); return; }
       setLoading(true);
       try {
-        // تسجيل الدخول عبر Firebase Auth
         const userCred = await signInWithEmailAndPassword(auth, email, password);
         const user = userCred.user;
 
-        // ✅ التحقق من أن هذا المستخدم معلم
         const teacherDoc = await getDoc(doc(db, 'teachers', user.uid, 'settings', 'preferences'));
-        if (!teacherDoc.exists()) {
-          // هذا المستخدم ليس معلمًا – نطرده فورًا
-          await signOut(auth);
-          showMessage('هذا الحساب ليس حساب معلم. الرجاء استخدام تطبيق الطالب.', 'error');
-          setLoading(false);
-          return;
-        }
+        if (!teacherDoc.exists()) { await signOut(auth); showMessage('هذا الحساب ليس حساب معلم.', 'error'); setLoading(false); return; }
 
-        // نجاح – انتقال إلى لوحة التحكم
-        showMessage('✅ تم تسجيل الدخول بنجاح!', 'success');
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1200);
+        const data = teacherDoc.data();
+        if (data.status === 'pending') { await signOut(auth); showMessage('⏳ حسابك قيد المراجعة من قبل المشرف.', 'error'); setLoading(false); return; }
 
+        showMessage('✅ تم تسجيل الدخول!', 'success');
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
       } catch (error) {
-        let msg = 'فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى.';
-        if (error.code === 'auth/user-not-found') msg = 'لا يوجد حساب بهذا البريد الإلكتروني.';
-        else if (error.code === 'auth/wrong-password') msg = 'كلمة المرور غير صحيحة.';
-        else if (error.code === 'auth/invalid-email') msg = 'صيغة البريد الإلكتروني غير صحيحة.';
-        else if (error.code === 'auth/too-many-requests') msg = 'محاولات كثيرة جدًا. حاول لاحقًا.';
+        let msg = 'فشل تسجيل الدخول.';
+        if (error.code === 'auth/user-not-found') msg = 'لا يوجد حساب بهذا البريد.';
+        else if (error.code === 'auth/wrong-password') msg = 'كلمة مرور غير صحيحة.';
+        else if (error.code === 'auth/too-many-requests') msg = 'محاولات كثيرة. حاول لاحقًا.';
         showMessage(msg, 'error');
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     });
 
-    // نسيت كلمة المرور
     forgotBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim();
-      if (!email) {
-        showMessage('الرجاء إدخال بريدك الإلكتروني أولاً', 'error');
-        return;
-      }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        showMessage('✅ تم إرسال رابط استعادة كلمة المرور إلى بريدك!', 'success');
-      } catch (error) {
-        let msg = 'تعذر إرسال رابط الاستعادة.';
-        if (error.code === 'auth/user-not-found') msg = 'لا يوجد حساب بهذا البريد.';
-        showMessage(msg, 'error');
-      }
+      if (!email) { showMessage('أدخل بريدك أولاً', 'error'); return; }
+      try { await sendPasswordResetEmail(auth, email); showMessage('✅ تم إرسال رابط الاستعادة!', 'success'); }
+      catch (error) { showMessage('فشل إرسال رابط الاستعادة.', 'error'); }
     });
 
-    // اللغة والوضع الليلي
+    // لغة ووضع ليلي
     let lang = 'ar', isDark = false;
-    const langToggle = document.getElementById('langToggle');
-    const darkToggle = document.getElementById('darkToggle');
-    const langLabel = document.getElementById('langLabel');
-    const darkLabel = document.getElementById('darkLabel');
-    const subhead = document.getElementById('subhead');
-    const authCard = document.getElementById('authCard');
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle');
+    const langLabel = document.getElementById('langLabel'), darkLabel = document.getElementById('darkLabel');
+    const subhead = document.getElementById('subhead'), authCard = document.getElementById('authCard');
 
     function applyLanguage(l) {
       lang = l;
       if (l === 'ar') {
-        authCard.classList.add('rtl');
-        document.documentElement.lang = 'ar';
-        document.documentElement.dir = 'rtl';
-        subhead.textContent = 'بوابة المعلم';
-        emailInput.placeholder = 'teacher@zentor.com';
-        passwordInput.placeholder = '••••••••';
+        authCard.classList.add('rtl'); document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
+        subhead.textContent = 'بوابة المعلم'; emailInput.placeholder = 'teacher@zentor.com';
         document.querySelector('label[for="emailInput"]').textContent = 'البريد الإلكتروني';
         document.querySelector('label[for="passwordInput"]').textContent = 'كلمة المرور';
-        btnText.textContent = 'تسجيل الدخول';
-        forgotBtn.innerHTML = '<i class="fas fa-key"></i> نسيت كلمة المرور؟';
+        btnText.textContent = 'تسجيل الدخول'; forgotBtn.innerHTML = '<i class="fas fa-key"></i> نسيت كلمة المرور؟';
         langLabel.textContent = 'AR';
       } else {
-        authCard.classList.remove('rtl');
-        document.documentElement.lang = 'en';
-        document.documentElement.dir = 'ltr';
-        subhead.textContent = 'Teacher Portal';
-        emailInput.placeholder = 'teacher@zentor.com';
-        passwordInput.placeholder = '••••••••';
+        authCard.classList.remove('rtl'); document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr';
+        subhead.textContent = 'Teacher Portal'; emailInput.placeholder = 'teacher@zentor.com';
         document.querySelector('label[for="emailInput"]').textContent = 'Email';
         document.querySelector('label[for="passwordInput"]').textContent = 'Password';
-        btnText.textContent = 'Sign in';
-        forgotBtn.innerHTML = '<i class="fas fa-key"></i> Forgot password?';
+        btnText.textContent = 'Sign in'; forgotBtn.innerHTML = '<i class="fas fa-key"></i> Forgot password?';
         langLabel.textContent = 'EN';
       }
     }
-
     langToggle.addEventListener('click', () => applyLanguage(lang === 'ar' ? 'en' : 'ar'));
-
     darkToggle.addEventListener('click', () => {
-      isDark = !isDark;
-      document.body.classList.toggle('dark-mode', isDark);
+      isDark = !isDark; document.body.classList.toggle('dark-mode', isDark);
       darkLabel.textContent = isDark ? 'فاتح' : 'داكن';
       darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
       darkToggle.appendChild(document.createTextNode(darkLabel.textContent));
     });
 
-    // ✅ إذا كان المعلم مسجلاً بالفعل، انتقل مباشرة إلى لوحة التحكم
+    // إذا كان مسجلاً بالفعل
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         const teacherDoc = await getDoc(doc(db, 'teachers', user.uid, 'settings', 'preferences'));
-        if (teacherDoc.exists()) {
+        if (teacherDoc.exists() && teacherDoc.data().status === 'active') {
           window.location.href = 'dashboard.html';
         }
       }
     });
 
-    // تطبيق اللغة الافتراضية
     applyLanguage('ar');
   </script>
 </body>
