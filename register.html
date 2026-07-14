@@ -35,15 +35,8 @@
 
     .logo-area { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; }
     .logo-icon {
-      font-size: 2rem;
-      color: #2a7de1;
-      background: #e8f0fe;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
+      font-size: 2rem; color: #2a7de1; background: #e8f0fe;
+      width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px;
     }
     body.dark-mode .logo-icon { background: #2a3a5a; color: #6b9ef0; }
     .logo-text { font-weight: 700; font-size: 1.6rem; letter-spacing: -0.5px; color: #0b1e33; }
@@ -54,67 +47,31 @@
     .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: #1f2a41; }
     body.dark-mode .form-group label { color: #d0dae8; }
     .input-wrapper { position: relative; }
-    .input-wrapper i {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #8a9bb5;
-      font-size: 1rem;
-    }
+    .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8a9bb5; font-size: 1rem; }
     .input-wrapper input {
-      width: 100%;
-      padding: 0.9rem 1rem 0.9rem 2.8rem;
-      border: 1.5px solid #dfe6f0;
-      border-radius: 14px;
-      font-size: 1rem;
-      background: #f9fbfe;
-      transition: 0.15s;
-      font-weight: 500;
-      color: #1a253a;
+      width: 100%; padding: 0.9rem 1rem 0.9rem 2.8rem; border: 1.5px solid #dfe6f0; border-radius: 14px;
+      font-size: 1rem; background: #f9fbfe; transition: 0.15s; font-weight: 500; color: #1a253a;
     }
     body.dark-mode .input-wrapper input { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
     .input-wrapper input:focus { outline: none; border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.15); }
+
     .btn-submit {
-      width: 100%;
-      padding: 0.9rem;
-      background: #2a7de1;
-      border: none;
-      border-radius: 40px;
-      font-weight: 700;
-      font-size: 1rem;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.7rem;
-      cursor: pointer;
-      transition: 0.15s;
-      box-shadow: 0 8px 20px -6px rgba(42,125,225,0.3);
+      width: 100%; padding: 0.9rem; background: #2a7de1; border: none; border-radius: 40px;
+      font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; justify-content: center;
+      gap: 0.7rem; cursor: pointer; transition: 0.15s; box-shadow: 0 8px 20px -6px rgba(42,125,225,0.3);
     }
     .btn-submit:hover { background: #1a67c4; }
     .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
     .spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255,255,255,0.25);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.25);
+      border-top: 3px solid #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .message-box {
-      margin-top: 1.2rem;
-      padding: 0.8rem 1rem;
-      border-radius: 14px;
-      font-weight: 500;
-      font-size: 0.9rem;
-      display: none;
-      align-items: center;
-      gap: 0.6rem;
+      margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 14px; font-weight: 500; font-size: 0.9rem;
+      display: none; align-items: center; gap: 0.6rem;
     }
     .message-box.error { display: flex; background: #fde8e8; color: #b3403a; border-left: 5px solid #b3403a; }
     .message-box.success { display: flex; background: #e3f5e9; color: #1f7840; border-left: 5px solid #1f7840; }
@@ -122,14 +79,8 @@
     body.dark-mode .message-box.success { background: #1e3a2a; color: #8bddb0; }
 
     .footer-lang {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #6b7d9c;
-      border-top: 1px solid #e7edf5;
-      padding-top: 1.5rem;
+      display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;
+      font-size: 0.8rem; color: #6b7d9c; border-top: 1px solid #e7edf5; padding-top: 1.5rem;
     }
     body.dark-mode .footer-lang { border-top-color: #2f3b4f; color: #9aabbf; }
     .link-btn { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
@@ -151,31 +102,19 @@
     <form id="registerForm" autocomplete="off">
       <div class="form-group">
         <label for="nameInput">الاسم الكامل</label>
-        <div class="input-wrapper">
-          <i class="fas fa-user"></i>
-          <input type="text" id="nameInput" placeholder="محمد أحمد" required>
-        </div>
+        <div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="nameInput" placeholder="محمد أحمد" required></div>
       </div>
       <div class="form-group">
         <label for="emailInput">البريد الإلكتروني</label>
-        <div class="input-wrapper">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="emailInput" placeholder="teacher@zentor.com" required>
-        </div>
+        <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="emailInput" placeholder="teacher@zentor.com" required></div>
       </div>
       <div class="form-group">
         <label for="passwordInput">كلمة المرور (6 أحرف على الأقل)</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="passwordInput" placeholder="••••••••" required minlength="6">
-        </div>
+        <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="passwordInput" placeholder="••••••••" required minlength="6"></div>
       </div>
       <div class="form-group">
         <label for="confirmInput">تأكيد كلمة المرور</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="confirmInput" placeholder="••••••••" required minlength="6">
-        </div>
+        <div class="input-wrapper"><i class="fas fa-lock"></i><input type="password" id="confirmInput" placeholder="••••••••" required minlength="6"></div>
       </div>
 
       <button type="submit" class="btn-submit" id="registerBtn">
@@ -184,10 +123,7 @@
       </button>
     </form>
 
-    <div id="messageBox" class="message-box">
-      <i id="msgIcon" class="fas fa-info-circle"></i>
-      <span id="msgText"></span>
-    </div>
+    <div id="messageBox" class="message-box"><i id="msgIcon" class="fas fa-info-circle"></i><span id="msgText"></span></div>
 
     <div class="footer-lang">
       <a href="login.html" class="link-btn"><i class="fas fa-arrow-right"></i> لديك حساب؟ سجل دخول</a>
@@ -200,28 +136,17 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      updateProfile,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCOBJ22snwOow8xfQnL2WmCusmyS8iWWlk",
-      authDomain: "educore-c3b42.firebaseapp.com",
-      projectId: "educore-c3b42",
-      storageBucket: "educore-c3b42.firebasestorage.app",
-      messagingSenderId: "750509780814",
-      appId: "1:750509780814:web:f57bddff39c7668b3cf81f",
-      measurementId: "G-LF317C03Q0"
+      apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+      authDomain: "zentor-caaf1.firebaseapp.com",
+      projectId: "zentor-caaf1",
+      storageBucket: "zentor-caaf1.firebasestorage.app",
+      messagingSenderId: "681267238383",
+      appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+      measurementId: "G-X80GNJHMS5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -243,15 +168,10 @@
       messageBox.style.display = 'flex';
     }
     function hideMessage() { messageBox.style.display = 'none'; messageBox.className = 'message-box'; }
-    function setLoading(isLoading) {
-      registerBtn.disabled = isLoading;
-      btnText.style.display = isLoading ? 'none' : 'inline';
-      btnSpinner.style.display = isLoading ? 'inline' : 'none';
-    }
+    function setLoading(isLoading) { registerBtn.disabled = isLoading; btnText.style.display = isLoading ? 'none' : 'inline'; btnSpinner.style.display = isLoading ? 'inline' : 'none'; }
 
     registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      hideMessage();
+      e.preventDefault(); hideMessage();
 
       const name = document.getElementById('nameInput').value.trim();
       const email = document.getElementById('emailInput').value.trim();
@@ -264,61 +184,36 @@
 
       setLoading(true);
       try {
-        // 1. إنشاء المستخدم في Firebase Auth
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCred.user;
-
-        // 2. تحديث الاسم في الملف الشخصي
         await updateProfile(user, { displayName: name });
 
-        // 3. إنشاء مستند preferences مع حالة "pending" (قيد المراجعة)
         await setDoc(doc(db, 'teachers', user.uid, 'settings', 'preferences'), {
-          name: name,
-          email: email,
-          phone: '',
-          notifEmail: true,
-          notifPush: true,
-          notifSms: false,
-          language: 'ar',
-          darkMode: false,
+          name, email, phone: '',
+          notifEmail: true, notifPush: true, notifSms: false,
+          language: 'ar', darkMode: false,
           status: 'pending',
           createdAt: serverTimestamp()
         });
 
-        // 4. تسجيل الخروج فورًا
         await signOut(auth);
-
-        // 5. نجاح
         showMessage('✅ تم إنشاء حسابك بنجاح! حسابك قيد المراجعة من قبل المشرف.', 'success');
         registerBtn.disabled = true;
         registerForm.querySelectorAll('input').forEach(inp => inp.disabled = true);
-
       } catch (error) {
-        console.error('Register error:', error);
-        // عرض رسالة الخطأ الأصلية
+        console.error(error);
         let msg = error.message || 'فشل إنشاء الحساب';
         if (error.code === 'auth/email-already-in-use') msg = 'البريد الإلكتروني مستخدم بالفعل.';
         else if (error.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة جدًا.';
-        else if (error.code === 'permission-denied') msg = 'تم رفض العملية من قبل قواعد الأمان. تأكد من نشر القواعد الصحيحة.';
         showMessage('❌ ' + msg, 'error');
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
     });
 
-    // منع الدخول التلقائي
-    onAuthStateChanged(auth, (user) => {
-      if (user) signOut(auth);
-    });
-
-    // اللغة والوضع الليلي
+    // لغة ووضع ليلي
     let lang = 'ar', isDark = false;
-    const langToggle = document.getElementById('langToggle');
-    const darkToggle = document.getElementById('darkToggle');
-    const langLabel = document.getElementById('langLabel');
-    const darkLabel = document.getElementById('darkLabel');
-    const subhead = document.getElementById('subhead');
-    const authCard = document.getElementById('authCard');
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle');
+    const langLabel = document.getElementById('langLabel'), darkLabel = document.getElementById('darkLabel');
+    const subhead = document.getElementById('subhead'), authCard = document.getElementById('authCard');
 
     function applyLanguage(l) {
       lang = l;
@@ -330,8 +225,7 @@
         document.querySelector('label[for="emailInput"]').textContent = 'البريد الإلكتروني';
         document.querySelector('label[for="passwordInput"]').textContent = 'كلمة المرور (6 أحرف على الأقل)';
         document.querySelector('label[for="confirmInput"]').textContent = 'تأكيد كلمة المرور';
-        btnText.textContent = 'إنشاء حساب';
-        langLabel.textContent = 'AR';
+        btnText.textContent = 'إنشاء حساب'; langLabel.textContent = 'AR';
       } else {
         authCard.classList.remove('rtl'); document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr';
         subhead.textContent = 'Create New Teacher Account';
@@ -340,14 +234,12 @@
         document.querySelector('label[for="emailInput"]').textContent = 'Email';
         document.querySelector('label[for="passwordInput"]').textContent = 'Password (min 6)';
         document.querySelector('label[for="confirmInput"]').textContent = 'Confirm Password';
-        btnText.textContent = 'Create Account';
-        langLabel.textContent = 'EN';
+        btnText.textContent = 'Create Account'; langLabel.textContent = 'EN';
       }
     }
     langToggle.addEventListener('click', () => applyLanguage(lang === 'ar' ? 'en' : 'ar'));
     darkToggle.addEventListener('click', () => {
-      isDark = !isDark;
-      document.body.classList.toggle('dark-mode', isDark);
+      isDark = !isDark; document.body.classList.toggle('dark-mode', isDark);
       darkLabel.textContent = isDark ? 'فاتح' : 'داكن';
       darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
       darkToggle.appendChild(document.createTextNode(darkLabel.textContent));
