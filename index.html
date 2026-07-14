@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>Zentor · منصة التعليم الذكي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      color: #0b1e33;
+      line-height: 1.6;
+    }
+    body.dark-mode { background: #0b0e14; color: #eef2f6; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+    /* Navbar */
+    .navbar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.2rem 2rem; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+      position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #eef2f8;
+    }
+    body.dark-mode .navbar { background: rgba(11,14,20,0.9); border-bottom-color: #2a3442; }
+    .nav-logo { font-size: 1.8rem; font-weight: 800; color: #2a7de1; }
+    .nav-links { display: flex; gap: 2rem; align-items: center; }
+    .nav-links a { text-decoration: none; color: #4a5b7a; font-weight: 500; transition: 0.15s; }
+    .nav-links a:hover { color: #2a7de1; }
+    body.dark-mode .nav-links a { color: #b0c0d4; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.6rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; font-size: 0.95rem; text-decoration: none; }
+    .btn-primary { background: #2a7de1; color: white; }
+    .btn-primary:hover { background: #1a67c4; }
+    .btn-outline { background: transparent; border: 2px solid #2a7de1; color: #2a7de1; }
+    .btn-outline:hover { background: #2a7de1; color: white; }
+    .lang-dark { display: flex; gap: 0.6rem; margin-left: 1rem; }
+    .lang-dark button { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; }
+    .lang-dark .dark-toggle { color: #6b7d9c; }
+    body.dark-mode .lang-dark .dark-toggle { color: #b0c0d4; }
+
+    /* Hero */
+    .hero {
+      display: flex; align-items: center; justify-content: space-between; gap: 3rem;
+      padding: 4rem 0 5rem; flex-wrap: wrap;
+    }
+    .hero-text { flex: 1; min-width: 280px; }
+    .hero-text h1 { font-size: 3rem; font-weight: 900; line-height: 1.2; margin-bottom: 1.5rem; }
+    .hero-text h1 span { color: #2a7de1; }
+    .hero-text p { font-size: 1.1rem; color: #5e6f8d; margin-bottom: 2rem; max-width: 500px; }
+    body.dark-mode .hero-text p { color: #9aabbf; }
+    .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .hero-visual {
+      flex: 1; min-width: 280px; display: flex; justify-content: center; align-items: center;
+    }
+    .hero-visual .circle {
+      width: 320px; height: 320px; background: linear-gradient(135deg, #2a7de1, #6b9ef0);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 6rem; color: white; box-shadow: 0 30px 60px rgba(42,125,225,0.3);
+    }
+
+    /* Features */
+    .features {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem; padding: 4rem 0;
+    }
+    .feature-card {
+      background: #f9fbfe; border-radius: 24px; padding: 2rem; text-align: center;
+      border: 1px solid #eef2f8; transition: 0.2s;
+    }
+    body.dark-mode .feature-card { background: #1a1f2b; border-color: #2a3442; }
+    .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+    .feature-card i { font-size: 2.5rem; color: #2a7de1; margin-bottom: 1rem; }
+    .feature-card h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 0.9rem; color: #6b7d9c; }
+
+    /* Stats */
+    .stats { display: flex; justify-content: center; gap: 4rem; padding: 3rem 0; flex-wrap: wrap; }
+    .stat-item { text-align: center; }
+    .stat-item .number { font-size: 2.5rem; font-weight: 900; color: #2a7de1; }
+    .stat-item .label { font-size: 0.9rem; color: #6b7d9c; margin-top: 0.3rem; }
+
+    /* Footer */
+    .footer {
+      text-align: center; padding: 2rem; border-top: 1px solid #eef2f8;
+      color: #6b7d9c; font-size: 0.85rem; margin-top: 2rem;
+    }
+    body.dark-mode .footer { border-top-color: #2a3442; }
+
+    @media (max-width: 768px) {
+      .hero { flex-direction: column-reverse; text-align: center; }
+      .hero-text p { max-width: 100%; }
+      .hero-visual .circle { width: 240px; height: 240px; font-size: 4rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-logo">Zentor</div>
+    <div class="nav-links">
+      <a href="#features">المميزات</a>
+      <a href="#about">عن المنصة</a>
+      <a href="login.html" class="btn btn-outline">دخول المعلم</a>
+      <a href="student/login.html" class="btn btn-primary">دخول الطالب</a>
+      <div class="lang-dark">
+        <button id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
+        <button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>منصة <span>Zentor</span> للتعليم الذكي</h1>
+        <p>إدارة الحصص، رفع الدروس، متابعة الطلاب، وتقارير الأداء – كل ما يحتاجه المعلم في منصة واحدة.</p>
+        <div class="hero-buttons">
+          <a href="login.html" class="btn btn-primary"><i class="fas fa-chalkboard-teacher"></i> دخول المعلم</a>
+          <a href="student/login.html" class="btn btn-outline"><i class="fas fa-user-graduate"></i> دخول الطالب</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="circle"><i class="fas fa-graduation-cap"></i></div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+      <h2 style="text-align:center; font-size:2rem; font-weight:800; margin-bottom:3rem;">لماذا Zentor؟</h2>
+      <div class="features">
+        <div class="feature-card">
+          <i class="fas fa-video"></i>
+          <h3>بث مباشر تفاعلي</h3>
+          <p>أنشئ حصصًا مباشرة وشارك الرابط مع طلابك بضغطة زر.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <h3>رفع الدروس والملفات</h3>
+          <p>ارفع فيديوهات، PDF، وصور مصغرة بسرعة عبر Cloudinary.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-chart-line"></i>
+          <h3>تقارير وإحصائيات</h3>
+          <p>تابع تقدم طلابك، الإيرادات، ونسب الحضور في لوحة تحكم واحدة.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-comments"></i>
+          <h3>محادثات فورية</h3>
+          <p>تواصل مع طلابك مباشرة داخل المنصة بدون مغادرة.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-key"></i>
+          <h3>أكواد اشتراك مرنة</h3>
+          <p>أنشئ أكواد اشتراك للطلاب وتحكم في عدد مرات الاستخدام.</p>
+        </div>
+        <div class="feature-card">
+          <i class="fas fa-moon"></i>
+          <h3>وضع ليلي ودعم عربي</h3>
+          <p>تجربة استخدام مريحة باللغة العربية مع دعم كامل للوضع الليلي.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="stats">
+      <div class="stat-item"><div class="number">+500</div><div class="label">معلم يستخدمون Zentor</div></div>
+      <div class="stat-item"><div class="number">+10,000</div><div class="label">طالب مسجل</div></div>
+      <div class="stat-item"><div class="number">+25,000</div><div class="label">درس تم رفعه</div></div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer">&copy; 2025 Zentor. جميع الحقوق محفوظة.</div>
+  </main>
+
+  <script>
+    let lang = 'ar', isDark = false;
+    const langToggle = document.getElementById('langToggle');
+    const darkToggle = document.getElementById('darkToggle');
+    const langLabel = document.getElementById('langLabel');
+
+    const translations = {
+      ar: {
+        features: 'المميزات', about: 'عن المنصة', teacherLogin: 'دخول المعلم',
+        studentLogin: 'دخول الطالب', heroTitle: 'منصة <span>Zentor</span> للتعليم الذكي',
+        heroDesc: 'إدارة الحصص، رفع الدروس، متابعة الطلاب، وتقارير الأداء – كل ما يحتاجه المعلم في منصة واحدة.',
+        why: 'لماذا Zentor؟',
+        feat1: 'بث مباشر تفاعلي', feat1desc: 'أنشئ حصصًا مباشرة وشارك الرابط مع طلابك بضغطة زر.',
+        feat2: 'رفع الدروس والملفات', feat2desc: 'ارفع فيديوهات، PDF، وصور مصغرة بسرعة عبر Cloudinary.',
+        feat3: 'تقارير وإحصائيات', feat3desc: 'تابع تقدم طلابك، الإيرادات، ونسب الحضور في لوحة تحكم واحدة.',
+        feat4: 'محادثات فورية', feat4desc: 'تواصل مع طلابك مباشرة داخل المنصة بدون مغادرة.',
+        feat5: 'أكواد اشتراك مرنة', feat5desc: 'أنشئ أكواد اشتراك للطلاب وتحكم في عدد مرات الاستخدام.',
+        feat6: 'وضع ليلي ودعم عربي', feat6desc: 'تجربة استخدام مريحة باللغة العربية مع دعم كامل للوضع الليلي.',
+        teachers: 'معلم يستخدمون Zentor', students: 'طالب مسجل', lessons: 'درس تم رفعه'
+      },
+      en: {
+        features: 'Features', about: 'About', teacherLogin: 'Teacher Login',
+        studentLogin: 'Student Login', heroTitle: '<span>Zentor</span> Smart Learning Platform',
+        heroDesc: 'Manage classes, upload lessons, track students, and performance reports – all in one platform.',
+        why: 'Why Zentor?',
+        feat1: 'Interactive Live Streaming', feat1desc: 'Create live sessions and share the link with your students instantly.',
+        feat2: 'Upload Lessons & Files', feat2desc: 'Upload videos, PDFs, and thumbnails quickly via Cloudinary.',
+        feat3: 'Reports & Analytics', feat3desc: 'Track student progress, revenue, and attendance in one dashboard.',
+        feat4: 'Instant Messaging', feat4desc: 'Chat with your students directly within the platform.',
+        feat5: 'Flexible Subscription Codes', feat5desc: 'Create subscription codes and control usage limits.',
+        feat6: 'Dark Mode & Arabic Support', feat6desc: 'Comfortable experience with full Arabic language and dark mode.',
+        teachers: 'Teachers using Zentor', students: 'Registered Students', lessons: 'Lessons Uploaded'
+      }
+    };
+
+    function applyLanguage(l) {
+      lang = l;
+      const t = translations[l];
+      document.querySelectorAll('.nav-links a[href="#features"]')[0].textContent = t.features;
+      document.querySelectorAll('.nav-links a[href="#about"]')[0].textContent = t.about;
+      document.querySelector('.hero-text h1').innerHTML = t.heroTitle;
+      document.querySelector('.hero-text p').textContent = t.heroDesc;
+      document.querySelector('h2').textContent = t.why;
+      const feats = document.querySelectorAll('.feature-card');
+      feats[0].querySelector('h3').textContent = t.feat1; feats[0].querySelector('p').textContent = t.feat1desc;
+      feats[1].querySelector('h3').textContent = t.feat2; feats[1].querySelector('p').textContent = t.feat2desc;
+      feats[2].querySelector('h3').textContent = t.feat3; feats[2].querySelector('p').textContent = t.feat3desc;
+      feats[3].querySelector('h3').textContent = t.feat4; feats[3].querySelector('p').textContent = t.feat4desc;
+      feats[4].querySelector('h3').textContent = t.feat5; feats[4].querySelector('p').textContent = t.feat5desc;
+      feats[5].querySelector('h3').textContent = t.feat6; feats[5].querySelector('p').textContent = t.feat6desc;
+      const stats = document.querySelectorAll('.stat-item .label');
+      stats[0].textContent = t.teachers; stats[1].textContent = t.students; stats[2].textContent = t.lessons;
+      langLabel.textContent = l.toUpperCase();
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+    }
+
+    langToggle.addEventListener('click', () => applyLanguage(lang === 'ar' ? 'en' : 'ar'));
+    darkToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      document.body.classList.toggle('dark-mode', isDark);
+      darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+    applyLanguage('ar');
+  </script>
+</body>
+</html>
