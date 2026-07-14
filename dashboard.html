@@ -20,21 +20,10 @@
     }
     body.dark-mode { background: #0b0e14; color: #eef2f6; }
 
-    /* ---------- Sidebar ---------- */
     .sidebar {
-      width: 260px;
-      background: #ffffff;
-      border-left: 1px solid #e7edf5;
-      padding: 2rem 1.2rem;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1000;
-      transition: transform 0.3s ease;
-      transform: translateX(0);
+      width: 260px; background: #ffffff; border-left: 1px solid #e7edf5;
+      padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed;
+      top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0);
     }
     body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
     .sidebar.closed { transform: translateX(100%); }
@@ -42,7 +31,6 @@
     .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
     body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
     .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
-    .sidebar-logo span small { color: #2a7de1; }
     .sidebar nav { flex: 1; }
     .sidebar nav a {
       display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px;
@@ -59,7 +47,6 @@
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
     .sidebar-overlay.show { display: block; }
 
-    /* ---------- Main ---------- */
     .main {
       flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease;
       overflow-x: hidden; width: 100%;
@@ -78,7 +65,6 @@
     .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
     body.dark-mode .hamburger { color: #b0c0d4; }
 
-    /* ---------- Stats ---------- */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
     .stat-card {
       background: #ffffff; border-radius: 20px; padding: 1.2rem; border: 1px solid #eef2f8;
@@ -138,10 +124,7 @@
       .sidebar.open { transform: translateX(0); }
       .stats-grid { grid-template-columns: 1fr 1fr; }
     }
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
-      .navbar { flex-direction: column; align-items: stretch; }
-    }
+    @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .navbar { flex-direction: column; align-items: stretch; } }
   </style>
 </head>
 <body>
@@ -179,7 +162,6 @@
       </div>
     </header>
 
-    <!-- إحصائيات -->
     <section class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div><div class="stat-info"><div class="label">الطلاب</div><div class="value" id="totalStudents">0</div></div></div>
       <div class="stat-card"><div class="stat-icon green"><i class="fas fa-book"></i></div><div class="stat-info"><div class="label">الكورسات</div><div class="value" id="totalCourses">0</div></div></div>
@@ -188,7 +170,6 @@
       <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="stat-info"><div class="label">الإيرادات</div><div class="value" id="totalRevenue">$0</div></div></div>
     </section>
 
-    <!-- رسم بياني + نشاطات -->
     <div class="row-2col">
       <div class="card-panel">
         <h3><i class="fas fa-chart-line"></i> <span data-key="analytics">تحليلات (آخر 6 أسابيع)</span></h3>
@@ -200,7 +181,6 @@
       </div>
     </div>
 
-    <!-- حصص قادمة -->
     <div class="card-panel">
       <h3><i class="fas fa-calendar-check"></i> <span data-key="upcoming">الحصص القادمة</span></h3>
       <div id="upcomingLives"><div class="empty-state">جاري التحميل...</div></div>
@@ -215,13 +195,13 @@
     import { getFirestore, collection, getDocs, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyCOBJ22snwOow8xfQnL2WmCusmyS8iWWlk",
-      authDomain: "educore-c3b42.firebaseapp.com",
-      projectId: "educore-c3b42",
-      storageBucket: "educore-c3b42.firebasestorage.app",
-      messagingSenderId: "750509780814",
-      appId: "1:750509780814:web:f57bddff39c7668b3cf81f",
-      measurementId: "G-LF317C03Q0"
+      apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+      authDomain: "zentor-caaf1.firebaseapp.com",
+      projectId: "zentor-caaf1",
+      storageBucket: "zentor-caaf1.firebasestorage.app",
+      messagingSenderId: "681267238383",
+      appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+      measurementId: "G-X80GNJHMS5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -231,22 +211,22 @@
     let TEACHER_ID = '';
     let chart = null;
 
-    // ---------- حماية ----------
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       TEACHER_ID = user.uid;
-      const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
-      if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
-        await signOut(auth);
-        window.location.href = 'login.html';
-        return;
-      }
+      try {
+        const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+        if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
+          await signOut(auth);
+          window.location.href = 'login.html';
+          return;
+        }
+      } catch (e) { /* ignore */ }
       document.body.classList.add('auth-ready');
       loadDashboardData();
       listenToUpdates();
     });
 
-    // ---------- Sidebar Mobile ----------
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
@@ -258,19 +238,14 @@
       if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html');
     });
 
-    // ---------- Toast ----------
     function showToast(msg, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div'); toast.className = `toast ${type}`;
       toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
       container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
     }
+    function formatCurrency(amount) { return '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0 }); }
 
-    function formatCurrency(amount) {
-      return '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0 });
-    }
-
-    // ---------- تحميل البيانات ----------
     async function loadDashboardData() {
       const base = `teachers/${TEACHER_ID}`;
       try {
@@ -281,20 +256,14 @@
           getDocs(collection(db, base, 'liveClasses')),
           getDocs(collection(db, base, 'payments'))
         ]);
-
         document.getElementById('totalStudents').textContent = stuSnap.size;
         document.getElementById('totalCourses').textContent = crsSnap.size;
         document.getElementById('totalLessons').textContent = lesSnap.size;
-
-        let liveCount = 0;
-        liveSnap.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') liveCount++; });
+        let liveCount = 0; liveSnap.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') liveCount++; });
         document.getElementById('liveClasses').textContent = liveCount;
-
-        let revenue = 0;
-        revSnap.forEach(doc => { const d = doc.data(); if (d.status === 'paid') revenue += (d.amount || 0); });
+        let revenue = 0; revSnap.forEach(doc => { const d = doc.data(); if (d.status === 'paid') revenue += (d.amount || 0); });
         document.getElementById('totalRevenue').textContent = formatCurrency(revenue);
 
-        // آخر النشاطات (بدون orderBy)
         const actSnap = await getDocs(collection(db, base, 'activities'));
         const acts = []; actSnap.forEach(doc => acts.push({ id: doc.id, ...doc.data() }));
         acts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
@@ -302,7 +271,6 @@
           ? '<div class="empty-state">لا توجد نشاطات</div>'
           : acts.slice(0, 5).map(a => `<div class="activity-item"><i class="fas ${a.icon || 'fa-circle'}"></i> ${a.text || 'نشاط'}</div>`).join('');
 
-        // الحصص القادمة (بدون orderBy)
         const liveSnap2 = await getDocs(collection(db, base, 'liveClasses'));
         const lives = []; liveSnap2.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') lives.push({ id: doc.id, ...d }); });
         lives.sort((a, b) => (a.startTime?.seconds || 0) - (b.startTime?.seconds || 0));
@@ -310,19 +278,16 @@
           ? '<div class="empty-state">لا توجد حصص قادمة</div>'
           : lives.map(l => `<div class="live-item"><i class="fas fa-video"></i> ${l.title || 'حصّة'} <span class="time">${l.startTime ? new Date(l.startTime.seconds*1000).toLocaleString('ar-EG') : '—'}</span></div>`).join('');
 
-        // رسم بياني
         const analyticsSnap = await getDocs(collection(db, base, 'analytics'));
         const dataMap = {}; analyticsSnap.forEach(doc => { const d = doc.data(); if (d.week && d.value !== undefined) dataMap[d.week] = d.value; });
         const weeks = ['W1','W2','W3','W4','W5','W6'];
         const values = weeks.map(w => dataMap[w] ?? Math.floor(Math.random()*40+20));
         renderChart({ labels: weeks, values });
 
-        // شارة الإشعارات
         const notifSnap = await getDocs(collection(db, base, 'notifications'));
         let unread = 0; notifSnap.forEach(doc => { if (doc.data().read === false) unread++; });
         document.getElementById('notifBadge').textContent = unread;
         document.getElementById('notifBadge').style.display = unread > 0 ? 'inline' : 'none';
-
       } catch (e) { console.error(e); showToast('فشل تحميل البيانات', 'error'); }
     }
 
@@ -354,7 +319,7 @@
       onSnapshot(collection(db, base, 'liveClasses'), snap => {
         let live = 0; snap.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') live++; });
         document.getElementById('liveClasses').textContent = live;
-        loadDashboardData(); // تحديث القائمة
+        loadDashboardData();
       });
       onSnapshot(collection(db, base, 'payments'), snap => {
         let total = 0; snap.forEach(doc => { const d = doc.data(); if (d.status === 'paid') total += (d.amount||0); });
@@ -362,7 +327,6 @@
       });
     }
 
-    // ---------- اللغة والوضع الليلي ----------
     let lang = 'ar';
     const langToggle = document.getElementById('langToggle');
     const darkToggle = document.getElementById('darkToggle');
