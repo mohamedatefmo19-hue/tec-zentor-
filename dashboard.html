@@ -20,6 +20,7 @@
     }
     body.dark-mode { background: #0b0e14; color: #eef2f6; }
 
+    /* ---------- Sidebar ---------- */
     .sidebar {
       width: 260px;
       background: #ffffff;
@@ -58,6 +59,7 @@
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
     .sidebar-overlay.show { display: block; }
 
+    /* ---------- Main ---------- */
     .main {
       flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease;
       overflow-x: hidden; width: 100%;
@@ -76,6 +78,7 @@
     .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
     body.dark-mode .hamburger { color: #b0c0d4; }
 
+    /* ---------- Stats ---------- */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
     .stat-card {
       background: #ffffff; border-radius: 20px; padding: 1.2rem; border: 1px solid #eef2f8;
@@ -176,6 +179,7 @@
       </div>
     </header>
 
+    <!-- إحصائيات -->
     <section class="stats-grid" id="statsGrid">
       <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-user-graduate"></i></div><div class="stat-info"><div class="label">الطلاب</div><div class="value" id="totalStudents">0</div></div></div>
       <div class="stat-card"><div class="stat-icon green"><i class="fas fa-book"></i></div><div class="stat-info"><div class="label">الكورسات</div><div class="value" id="totalCourses">0</div></div></div>
@@ -184,6 +188,7 @@
       <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-dollar-sign"></i></div><div class="stat-info"><div class="label">الإيرادات</div><div class="value" id="totalRevenue">$0</div></div></div>
     </section>
 
+    <!-- رسم بياني + نشاطات -->
     <div class="row-2col">
       <div class="card-panel">
         <h3><i class="fas fa-chart-line"></i> <span data-key="analytics">تحليلات (آخر 6 أسابيع)</span></h3>
@@ -195,6 +200,7 @@
       </div>
     </div>
 
+    <!-- حصص قادمة -->
     <div class="card-panel">
       <h3><i class="fas fa-calendar-check"></i> <span data-key="upcoming">الحصص القادمة</span></h3>
       <div id="upcomingLives"><div class="empty-state">جاري التحميل...</div></div>
@@ -206,7 +212,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCOBJ22snwOow8xfQnL2WmCusmyS8iWWlk",
@@ -225,25 +231,22 @@
     let TEACHER_ID = '';
     let chart = null;
 
-    // حماية المسار والتحقق من معلم
+    // ---------- حماية ----------
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
       TEACHER_ID = user.uid;
+      const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+      if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
+        await signOut(auth);
+        window.location.href = 'login.html';
+        return;
+      }
       document.body.classList.add('auth-ready');
-      try {
-        const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
-        const prefsSnap = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
-        if (!prefsSnap.exists()) {
-          await signOut(auth);
-          window.location.href = 'login.html';
-          return;
-        }
-      } catch (e) { /* ربما لا توجد settings بعد، لكنه معلم */ }
       loadDashboardData();
       listenToUpdates();
     });
 
-    // Mobile sidebar
+    // ---------- Sidebar Mobile ----------
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
@@ -251,11 +254,11 @@
     document.querySelectorAll('.sidebar nav a').forEach(link => {
       link.addEventListener('click', () => { if (window.innerWidth <= 768) { sidebar.classList.remove('open'); overlay.classList.remove('show'); } });
     });
-
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      if (confirm('هل أنت متأكد من تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html');
+      if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html');
     });
 
+    // ---------- Toast ----------
     function showToast(msg, type = 'success') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div'); toast.className = `toast ${type}`;
@@ -267,10 +270,11 @@
       return '$' + Number(amount).toLocaleString('en-US', { minimumFractionDigits: 0 });
     }
 
+    // ---------- تحميل البيانات ----------
     async function loadDashboardData() {
+      const base = `teachers/${TEACHER_ID}`;
       try {
-        const base = `teachers/${TEACHER_ID}`;
-        const [studentsSnap, coursesSnap, lessonsSnap, liveSnap, revSnap] = await Promise.all([
+        const [stuSnap, crsSnap, lesSnap, liveSnap, revSnap] = await Promise.all([
           getDocs(collection(db, base, 'students')),
           getDocs(collection(db, base, 'courses')),
           getDocs(collection(db, base, 'lessons')),
@@ -278,9 +282,9 @@
           getDocs(collection(db, base, 'payments'))
         ]);
 
-        document.getElementById('totalStudents').textContent = studentsSnap.size;
-        document.getElementById('totalCourses').textContent = coursesSnap.size;
-        document.getElementById('totalLessons').textContent = lessonsSnap.size;
+        document.getElementById('totalStudents').textContent = stuSnap.size;
+        document.getElementById('totalCourses').textContent = crsSnap.size;
+        document.getElementById('totalLessons').textContent = lesSnap.size;
 
         let liveCount = 0;
         liveSnap.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') liveCount++; });
@@ -290,46 +294,36 @@
         revSnap.forEach(doc => { const d = doc.data(); if (d.status === 'paid') revenue += (d.amount || 0); });
         document.getElementById('totalRevenue').textContent = formatCurrency(revenue);
 
-        // Recent activities (بدون orderBy، ترتيب محلي)
+        // آخر النشاطات (بدون orderBy)
         const actSnap = await getDocs(collection(db, base, 'activities'));
         const acts = []; actSnap.forEach(doc => acts.push({ id: doc.id, ...doc.data() }));
         acts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
-        const recentDiv = document.getElementById('recentActivities');
-        if (acts.length === 0) recentDiv.innerHTML = '<div class="empty-state">لا توجد نشاطات حديثة</div>';
-        else {
-          recentDiv.innerHTML = acts.slice(0, 5).map(a => `<div class="activity-item"><i class="fas ${a.icon || 'fa-circle'}"></i> ${a.text || 'نشاط'}</div>`).join('');
-        }
+        document.getElementById('recentActivities').innerHTML = acts.length === 0
+          ? '<div class="empty-state">لا توجد نشاطات</div>'
+          : acts.slice(0, 5).map(a => `<div class="activity-item"><i class="fas ${a.icon || 'fa-circle'}"></i> ${a.text || 'نشاط'}</div>`).join('');
 
-        // Upcoming live sessions (ترتيب محلي)
+        // الحصص القادمة (بدون orderBy)
         const liveSnap2 = await getDocs(collection(db, base, 'liveClasses'));
         const lives = []; liveSnap2.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') lives.push({ id: doc.id, ...d }); });
         lives.sort((a, b) => (a.startTime?.seconds || 0) - (b.startTime?.seconds || 0));
-        const upDiv = document.getElementById('upcomingLives');
-        if (lives.length === 0) upDiv.innerHTML = '<div class="empty-state">لا توجد حصص قادمة</div>';
-        else {
-          upDiv.innerHTML = lives.map(l => {
-            const time = l.startTime ? new Date(l.startTime.seconds * 1000).toLocaleString('ar-EG') : 'غير محدد';
-            return `<div class="live-item"><i class="fas fa-video"></i> ${l.title || 'حصّة'} <span class="time">${time}</span></div>`;
-          }).join('');
-        }
+        document.getElementById('upcomingLives').innerHTML = lives.length === 0
+          ? '<div class="empty-state">لا توجد حصص قادمة</div>'
+          : lives.map(l => `<div class="live-item"><i class="fas fa-video"></i> ${l.title || 'حصّة'} <span class="time">${l.startTime ? new Date(l.startTime.seconds*1000).toLocaleString('ar-EG') : '—'}</span></div>`).join('');
 
-        // Chart
+        // رسم بياني
         const analyticsSnap = await getDocs(collection(db, base, 'analytics'));
         const dataMap = {}; analyticsSnap.forEach(doc => { const d = doc.data(); if (d.week && d.value !== undefined) dataMap[d.week] = d.value; });
         const weeks = ['W1','W2','W3','W4','W5','W6'];
         const values = weeks.map(w => dataMap[w] ?? Math.floor(Math.random()*40+20));
         renderChart({ labels: weeks, values });
 
-        // Notifications badge
+        // شارة الإشعارات
         const notifSnap = await getDocs(collection(db, base, 'notifications'));
         let unread = 0; notifSnap.forEach(doc => { if (doc.data().read === false) unread++; });
         document.getElementById('notifBadge').textContent = unread;
         document.getElementById('notifBadge').style.display = unread > 0 ? 'inline' : 'none';
 
-      } catch (error) {
-        console.error(error);
-        showToast('فشل تحميل بيانات لوحة التحكم', 'error');
-      }
+      } catch (e) { console.error(e); showToast('فشل تحميل البيانات', 'error'); }
     }
 
     function renderChart(data) {
@@ -345,24 +339,18 @@
             data: data.values,
             borderColor: '#2a7de1',
             backgroundColor: 'rgba(42,125,225,0.08)',
-            fill: true,
-            tension: 0.3,
-            pointBackgroundColor: '#2a7de1',
-            pointRadius: 4,
+            fill: true, tension: 0.3,
+            pointBackgroundColor: '#2a7de1', pointRadius: 4
           }]
         },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true, grid: { color: '#eef2f8' } } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
       });
     }
 
     function listenToUpdates() {
       const base = `teachers/${TEACHER_ID}`;
-      onSnapshot(collection(db, base, 'students'), snap => { document.getElementById('totalStudents').textContent = snap.size; });
-      onSnapshot(collection(db, base, 'courses'), snap => { document.getElementById('totalCourses').textContent = snap.size; });
+      onSnapshot(collection(db, base, 'students'), snap => document.getElementById('totalStudents').textContent = snap.size);
+      onSnapshot(collection(db, base, 'courses'), snap => document.getElementById('totalCourses').textContent = snap.size);
       onSnapshot(collection(db, base, 'liveClasses'), snap => {
         let live = 0; snap.forEach(doc => { const d = doc.data(); if (d.status === 'upcoming' || d.status === 'live') live++; });
         document.getElementById('liveClasses').textContent = live;
@@ -374,7 +362,7 @@
       });
     }
 
-    // اللغة والوضع الليلي
+    // ---------- اللغة والوضع الليلي ----------
     let lang = 'ar';
     const langToggle = document.getElementById('langToggle');
     const darkToggle = document.getElementById('darkToggle');
@@ -397,7 +385,7 @@
       darkToggle.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     });
     applyLanguage('ar');
-    console.log('✅ لوحة التحكم جاهزة.');
+    console.log('✅ Zentor Dashboard ready.');
   </script>
 </body>
 </html>
