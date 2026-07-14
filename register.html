@@ -33,12 +33,7 @@
     }
     body.dark-mode .auth-card { background: #1a1f2b; }
 
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-    }
+    .logo-area { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; }
     .logo-icon {
       font-size: 2rem;
       color: #2a7de1;
@@ -53,17 +48,10 @@
     body.dark-mode .logo-icon { background: #2a3a5a; color: #6b9ef0; }
     .logo-text { font-weight: 700; font-size: 1.6rem; letter-spacing: -0.5px; color: #0b1e33; }
     body.dark-mode .logo-text { color: #eef2f6; }
-    .logo-text span { color: #2a7de1; }
     .subhead { font-size: 0.9rem; color: #5e6f8d; margin-top: 0.2rem; font-weight: 500; }
 
     .form-group { margin-bottom: 1.3rem; position: relative; }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-bottom: 0.4rem;
-      color: #1f2a41;
-    }
+    .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: #1f2a41; }
     body.dark-mode .form-group label { color: #d0dae8; }
     .input-wrapper { position: relative; }
     .input-wrapper i {
@@ -85,16 +73,8 @@
       font-weight: 500;
       color: #1a253a;
     }
-    body.dark-mode .input-wrapper input {
-      background: #252d3d;
-      border-color: #3b465b;
-      color: #eef2f6;
-    }
-    .input-wrapper input:focus {
-      outline: none;
-      border-color: #2a7de1;
-      box-shadow: 0 0 0 4px rgba(42,125,225,0.15);
-    }
+    body.dark-mode .input-wrapper input { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
+    .input-wrapper input:focus { outline: none; border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.15); }
     .btn-submit {
       width: 100%;
       padding: 0.9rem;
@@ -136,18 +116,8 @@
       align-items: center;
       gap: 0.6rem;
     }
-    .message-box.error {
-      display: flex;
-      background: #fde8e8;
-      color: #b3403a;
-      border-left: 5px solid #b3403a;
-    }
-    .message-box.success {
-      display: flex;
-      background: #e3f5e9;
-      color: #1f7840;
-      border-left: 5px solid #1f7840;
-    }
+    .message-box.error { display: flex; background: #fde8e8; color: #b3403a; border-left: 5px solid #b3403a; }
+    .message-box.success { display: flex; background: #e3f5e9; color: #1f7840; border-left: 5px solid #1f7840; }
     body.dark-mode .message-box.error { background: #3a2626; color: #f5b1b1; }
     body.dark-mode .message-box.success { background: #1e3a2a; color: #8bddb0; }
 
@@ -162,15 +132,7 @@
       padding-top: 1.5rem;
     }
     body.dark-mode .footer-lang { border-top-color: #2f3b4f; color: #9aabbf; }
-    .link-btn {
-      background: none;
-      border: none;
-      font-weight: 600;
-      color: #2a7de1;
-      cursor: pointer;
-      font-size: 0.85rem;
-      text-decoration: none;
-    }
+    .link-btn { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
     .rtl .input-wrapper i { left: auto; right: 1rem; }
     .rtl .input-wrapper input { padding: 0.9rem 2.8rem 0.9rem 1rem; }
     @media (max-width: 480px) { .auth-card { padding: 1.8rem 1.2rem; } }
@@ -242,7 +204,6 @@
       getAuth,
       createUserWithEmailAndPassword,
       updateProfile,
-      sendEmailVerification,
       onAuthStateChanged,
       signOut
     } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
@@ -281,10 +242,7 @@
       msgIcon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
       messageBox.style.display = 'flex';
     }
-    function hideMessage() {
-      messageBox.style.display = 'none';
-      messageBox.className = 'message-box';
-    }
+    function hideMessage() { messageBox.style.display = 'none'; messageBox.className = 'message-box'; }
     function setLoading(isLoading) {
       registerBtn.disabled = isLoading;
       btnText.style.display = isLoading ? 'none' : 'inline';
@@ -300,18 +258,9 @@
       const password = document.getElementById('passwordInput').value;
       const confirm = document.getElementById('confirmInput').value;
 
-      if (!name || !email || !password || !confirm) {
-        showMessage('يرجى ملء جميع الحقول', 'error');
-        return;
-      }
-      if (password !== confirm) {
-        showMessage('كلمة المرور وتأكيدها غير متطابقين', 'error');
-        return;
-      }
-      if (password.length < 6) {
-        showMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
-        return;
-      }
+      if (!name || !email || !password || !confirm) { showMessage('يرجى ملء جميع الحقول', 'error'); return; }
+      if (password !== confirm) { showMessage('كلمة المرور وتأكيدها غير متطابقين', 'error'); return; }
+      if (password.length < 6) { showMessage('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
 
       setLoading(true);
       try {
@@ -332,38 +281,34 @@
           notifSms: false,
           language: 'ar',
           darkMode: false,
-          status: 'pending',   // ⬅️ الحساب قيد المراجعة حتى يفعله المشرف
+          status: 'pending',
           createdAt: serverTimestamp()
         });
 
-        // 4. تسجيل الخروج فورًا (لأن الحساب لم يُفعّل بعد)
+        // 4. تسجيل الخروج فورًا
         await signOut(auth);
 
-        // 5. إظهار رسالة نجاح
-        showMessage('✅ تم إنشاء حسابك بنجاح! حسابك قيد المراجعة من قبل المشرف. سيتم تفعيله قريبًا.', 'success');
-
-        // 6. تعطيل الزر والنموذج
+        // 5. نجاح
+        showMessage('✅ تم إنشاء حسابك بنجاح! حسابك قيد المراجعة من قبل المشرف.', 'success');
         registerBtn.disabled = true;
         registerForm.querySelectorAll('input').forEach(inp => inp.disabled = true);
 
       } catch (error) {
-        let msg = 'فشل إنشاء الحساب.';
+        console.error('Register error:', error);
+        // عرض رسالة الخطأ الأصلية
+        let msg = error.message || 'فشل إنشاء الحساب';
         if (error.code === 'auth/email-already-in-use') msg = 'البريد الإلكتروني مستخدم بالفعل.';
         else if (error.code === 'auth/weak-password') msg = 'كلمة المرور ضعيفة جدًا.';
-        showMessage(msg, 'error');
+        else if (error.code === 'permission-denied') msg = 'تم رفض العملية من قبل قواعد الأمان. تأكد من نشر القواعد الصحيحة.';
+        showMessage('❌ ' + msg, 'error');
       } finally {
         setLoading(false);
       }
     });
 
-    // منع الدخول التلقائي إذا كان هناك مستخدم مسجل
+    // منع الدخول التلقائي
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // إذا كان هناك مستخدم مسجل، نتحقق من حالته
-        // إذا لم يكن pending، نطرده (لأنه ربما سجل دخول بعد تفعيل)
-        // هنا فقط نمنع البقاء
-        signOut(auth);
-      }
+      if (user) signOut(auth);
     });
 
     // اللغة والوضع الليلي
@@ -378,12 +323,9 @@
     function applyLanguage(l) {
       lang = l;
       if (l === 'ar') {
-        authCard.classList.add('rtl');
-        document.documentElement.lang = 'ar';
-        document.documentElement.dir = 'rtl';
+        authCard.classList.add('rtl'); document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
         subhead.textContent = 'إنشاء حساب معلم جديد';
         document.getElementById('nameInput').placeholder = 'محمد أحمد';
-        document.getElementById('emailInput').placeholder = 'teacher@zentor.com';
         document.querySelector('label[for="nameInput"]').textContent = 'الاسم الكامل';
         document.querySelector('label[for="emailInput"]').textContent = 'البريد الإلكتروني';
         document.querySelector('label[for="passwordInput"]').textContent = 'كلمة المرور (6 أحرف على الأقل)';
@@ -391,21 +333,17 @@
         btnText.textContent = 'إنشاء حساب';
         langLabel.textContent = 'AR';
       } else {
-        authCard.classList.remove('rtl');
-        document.documentElement.lang = 'en';
-        document.documentElement.dir = 'ltr';
+        authCard.classList.remove('rtl'); document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr';
         subhead.textContent = 'Create New Teacher Account';
         document.getElementById('nameInput').placeholder = 'John Doe';
-        document.getElementById('emailInput').placeholder = 'teacher@zentor.com';
         document.querySelector('label[for="nameInput"]').textContent = 'Full Name';
         document.querySelector('label[for="emailInput"]').textContent = 'Email';
-        document.querySelector('label[for="passwordInput"]').textContent = 'Password (min 6 characters)';
+        document.querySelector('label[for="passwordInput"]').textContent = 'Password (min 6)';
         document.querySelector('label[for="confirmInput"]').textContent = 'Confirm Password';
         btnText.textContent = 'Create Account';
         langLabel.textContent = 'EN';
       }
     }
-
     langToggle.addEventListener('click', () => applyLanguage(lang === 'ar' ? 'en' : 'ar'));
     darkToggle.addEventListener('click', () => {
       isDark = !isDark;
@@ -414,7 +352,6 @@
       darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
       darkToggle.appendChild(document.createTextNode(darkLabel.textContent));
     });
-
     applyLanguage('ar');
   </script>
 </body>
