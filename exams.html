@@ -46,6 +46,8 @@
         body.dark-mode .hamburger { color: #b0c0d4; }
 
         .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem; align-items: center; }
+        .toolbar .filter-select { padding: 0.6rem 1.2rem; border-radius: 40px; border: 1.5px solid #dfe6f0; background: white; font-weight: 500; min-width: 180px; }
+        body.dark-mode .toolbar .filter-select { background: #1a1f2b; border-color: #3b465b; color: #eef2f6; }
         .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; font-size: 0.9rem; white-space: nowrap; }
         .btn-primary { background: #2a7de1; color: white; }
         .btn-primary:hover { background: #1a67c4; }
@@ -148,6 +150,9 @@
     </header>
 
     <div class="toolbar">
+        <select class="filter-select" id="courseFilter">
+            <option value="all">📚 كل الكورسات</option>
+        </select>
         <button class="btn btn-primary" id="createExamBtn"><i class="fas fa-plus-circle"></i> إنشاء امتحان</button>
     </div>
 
@@ -157,6 +162,7 @@
                 <thead>
                     <tr>
                         <th>العنوان</th>
+                        <th>الكورس</th>
                         <th>المدة (دقيقة)</th>
                         <th>عدد الأسئلة</th>
                         <th>الدرجة الكاملة</th>
@@ -164,7 +170,7 @@
                     </tr>
                 </thead>
                 <tbody id="examsTableBody">
-                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr>
+                    <tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr>
                 </tbody>
             </table>
         </div>
@@ -177,6 +183,7 @@
         <h2 id="examModalTitle">إنشاء امتحان</h2>
         <form id="examForm">
             <input type="hidden" id="examId">
+            <div class="form-group"><label>الكورس</label><select id="examCourse" required></select></div>
             <div class="form-group"><label>العنوان</label><input type="text" id="examTitle" required></div>
             <div class="form-group"><label>الوصف</label><textarea id="examDescription" rows="2"></textarea></div>
             <div class="form-group"><label>المدة (بالدقائق)</label><input type="number" id="examDuration" required min="1" value="60"></div>
@@ -249,7 +256,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, Timestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
@@ -266,6 +273,12 @@
     const db = getFirestore(app);
 
     let TEACHER_ID = '';
+    let allCourses = [];
+    let allExams = [];
+    let currentExamCourseId = null;
+    let currentExamId = null;
+    let currentQuestionCourseId = null;
+    let unsubscribes = [];
 
     // التحقق من المعلم
     onAuthStateChanged(auth, async (user) => {
@@ -280,7 +293,8 @@
             }
         } catch (e) { console.error('خطأ في التحقق:', e); }
         document.body.classList.add('auth-ready');
-        listenToExams();
+        await loadCourses();
+        applyCourseFilter('all');
     });
 
     // الشريط الجانبي
@@ -297,22 +311,68 @@
         container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
     }
 
-    const tableBody = document.getElementById('examsTableBody');
-    let allExams = [];
-    let currentExamId = null;
-
-    function listenToExams() {
-        const q = query(collection(db, 'teachers', TEACHER_ID, 'exams'), orderBy('createdAt', 'desc'));
-        onSnapshot(q, snapshot => {
-            allExams = [];
-            snapshot.forEach(docSnap => allExams.push({ id: docSnap.id, ...docSnap.data() }));
-            renderTable(allExams);
-        }, error => { console.error(error); showToast('فشل تحميل الامتحانات', 'error'); });
+    async function loadCourses() {
+        const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'courses'));
+        allCourses = [];
+        const filterSelect = document.getElementById('courseFilter');
+        filterSelect.innerHTML = '<option value="all">📚 كل الكورسات</option>';
+        snap.forEach(doc => {
+            const data = doc.data();
+            allCourses.push({ id: doc.id, name: data.name || 'كورس بدون اسم' });
+            filterSelect.innerHTML += `<option value="${doc.id}">${data.name || 'كورس بدون اسم'}</option>`;
+        });
+        updateCourseSelectInModal();
     }
+
+    function updateCourseSelectInModal() {
+        const select = document.getElementById('examCourse');
+        if (!select) return;
+        select.innerHTML = '';
+        allCourses.forEach(c => select.innerHTML += `<option value="${c.id}">${c.name}</option>`);
+    }
+
+    document.getElementById('courseFilter').addEventListener('change', (e) => {
+        applyCourseFilter(e.target.value);
+    });
+
+    function applyCourseFilter(courseIdOrAll) {
+        unsubscribes.forEach(unsub => unsub());
+        unsubscribes = [];
+        allExams = [];
+
+        if (courseIdOrAll === 'all') {
+            allCourses.forEach(course => {
+                const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', course.id, 'exams'), orderBy('createdAt', 'desc'));
+                const unsub = onSnapshot(q, snapshot => {
+                    allExams = allExams.filter(e => e.courseId !== course.id);
+                    snapshot.forEach(docSnap => {
+                        allExams.push({ id: docSnap.id, ...docSnap.data(), courseId: course.id, courseName: course.name });
+                    });
+                    allExams.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                    renderTable(allExams);
+                });
+                unsubscribes.push(unsub);
+            });
+        } else {
+            const course = allCourses.find(c => c.id === courseIdOrAll);
+            const courseName = course ? course.name : '';
+            const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', courseIdOrAll, 'exams'), orderBy('createdAt', 'desc'));
+            const unsub = onSnapshot(q, snapshot => {
+                allExams = [];
+                snapshot.forEach(docSnap => {
+                    allExams.push({ id: docSnap.id, ...docSnap.data(), courseId: courseIdOrAll, courseName });
+                });
+                renderTable(allExams);
+            });
+            unsubscribes.push(unsub);
+        }
+    }
+
+    const tableBody = document.getElementById('examsTableBody');
 
     function renderTable(exams) {
         if (!exams.length) {
-            tableBody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-file-alt"></i><p>لا توجد امتحانات بعد</p></div></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-file-alt"></i><p>لا توجد امتحانات</p></div></td></tr>';
             return;
         }
         tableBody.innerHTML = exams.map(e => {
@@ -320,22 +380,23 @@
             const totalScore = e.totalScore || 100;
             return `<tr>
                 <td><strong>${e.title || ''}</strong></td>
+                <td>${e.courseName || '—'}</td>
                 <td>${e.duration || 60}</td>
                 <td><span class="badge badge-info">${questionCount} سؤال</span></td>
                 <td>${totalScore}</td>
                 <td>
                     <div class="actions">
-                        <button class="action-btn questions-btn" data-id="${e.id}" title="الأسئلة"><i class="fas fa-list-ul"></i></button>
-                        <button class="action-btn edit-btn" data-id="${e.id}" title="تعديل"><i class="fas fa-pen"></i></button>
-                        <button class="action-btn text-danger delete-btn" data-id="${e.id}" title="حذف"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn questions-btn" data-id="${e.id}" data-course="${e.courseId}" title="الأسئلة"><i class="fas fa-list-ul"></i></button>
+                        <button class="action-btn edit-btn" data-id="${e.id}" data-course="${e.courseId}" title="تعديل"><i class="fas fa-pen"></i></button>
+                        <button class="action-btn text-danger delete-btn" data-id="${e.id}" data-course="${e.courseId}" title="حذف"><i class="fas fa-trash"></i></button>
                     </div>
                 </td>
             </tr>`;
         }).join('');
 
-        document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.id)));
-        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id, 'exam')));
-        document.querySelectorAll('.questions-btn').forEach(b => b.addEventListener('click', () => openQuestionsModal(b.dataset.id)));
+        document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.id, b.dataset.course)));
+        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id, b.dataset.course, 'exam')));
+        document.querySelectorAll('.questions-btn').forEach(b => b.addEventListener('click', () => openQuestionsModal(b.dataset.id, b.dataset.course)));
     }
 
     // إنشاء / تعديل امتحان
@@ -346,11 +407,13 @@
         document.getElementById('examDescription').value = '';
         document.getElementById('examDuration').value = '60';
         document.getElementById('examTotalScore').value = '100';
+        updateCourseSelectInModal();
+        document.getElementById('examCourse').value = currentExamCourseId || (allCourses[0]?.id || '');
         document.getElementById('examModal').classList.add('active');
     });
 
-    function openEditModal(id) {
-        const exam = allExams.find(e => e.id === id);
+    function openEditModal(examId, courseId) {
+        const exam = allExams.find(e => e.id === examId && e.courseId === courseId);
         if (!exam) return;
         document.getElementById('examModalTitle').textContent = 'تعديل الامتحان';
         document.getElementById('examId').value = exam.id;
@@ -358,16 +421,18 @@
         document.getElementById('examDescription').value = exam.description || '';
         document.getElementById('examDuration').value = exam.duration || 60;
         document.getElementById('examTotalScore').value = exam.totalScore || 100;
+        updateCourseSelectInModal();
+        document.getElementById('examCourse').value = exam.courseId;
         document.getElementById('examModal').classList.add('active');
     }
 
-    document.getElementById('examCancelBtn').addEventListener('click', () => {
-        document.getElementById('examModal').classList.remove('active');
-    });
+    document.getElementById('examCancelBtn').addEventListener('click', () => document.getElementById('examModal').classList.remove('active'));
 
     document.getElementById('examForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('examId').value;
+        const courseId = document.getElementById('examCourse').value;
+        if (!courseId) { showToast('الرجاء اختيار كورس', 'error'); return; }
         const data = {
             title: document.getElementById('examTitle').value.trim(),
             description: document.getElementById('examDescription').value.trim(),
@@ -377,32 +442,33 @@
         };
         try {
             if (id) {
-                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'exams', id), data);
+                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'courses', courseId, 'exams', id), data);
                 showToast('تم تعديل الامتحان');
             } else {
                 data.createdAt = Timestamp.now();
                 data.questionCount = 0;
-                await addDoc(collection(db, 'teachers', TEACHER_ID, 'exams'), data);
+                await addDoc(collection(db, 'teachers', TEACHER_ID, 'courses', courseId, 'exams'), data);
                 showToast('تم إنشاء الامتحان');
             }
             document.getElementById('examModal').classList.remove('active');
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // إدارة الأسئلة
+    // الأسئلة
     const questionsModal = document.getElementById('questionsModal');
     const questionsList = document.getElementById('questionsList');
     let allQuestions = [];
 
-    function openQuestionsModal(examId) {
+    function openQuestionsModal(examId, courseId) {
         currentExamId = examId;
+        currentQuestionCourseId = courseId;
         questionsModal.classList.add('active');
         loadQuestions();
     }
 
     function loadQuestions() {
         questionsList.innerHTML = '<p>جاري التحميل...</p>';
-        const q = query(collection(db, 'teachers', TEACHER_ID, 'exams', currentExamId, 'questions'), orderBy('createdAt', 'asc'));
+        const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId, 'questions'), orderBy('createdAt', 'asc'));
         onSnapshot(q, snapshot => {
             allQuestions = [];
             snapshot.forEach(docSnap => allQuestions.push({ id: docSnap.id, ...docSnap.data() }));
@@ -412,7 +478,7 @@
 
     function renderQuestions() {
         if (!allQuestions.length) {
-            questionsList.innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><p>لا توجد أسئلة بعد</p></div>';
+            questionsList.innerHTML = '<div class="empty-state"><i class="fas fa-question-circle"></i><p>لا توجد أسئلة</p></div>';
             return;
         }
         let html = '';
@@ -435,21 +501,18 @@
                 });
                 html += '</div>';
             } else if (q.type === 'truefalse') {
-                html += `<div class="choices-list"><div class="choice-item"><i class="fas fa-check-circle text-correct"></i> الإجابة الصحيحة: ${q.correctAnswer ? 'صح' : 'خطأ'}</div></div>`;
+                html += `<div class="choices-list"><div class="choice-item"><i class="fas fa-check-circle text-correct"></i> الإجابة: ${q.correctAnswer ? 'صح' : 'خطأ'}</div></div>`;
             } else if (q.type === 'short') {
                 html += `<div class="choices-list"><div class="choice-item"><i class="fas fa-check-circle text-correct"></i> الإجابة: ${q.correctAnswer || '—'}</div></div>`;
             }
             html += '</div>';
         });
         questionsList.innerHTML = html;
-
         document.querySelectorAll('.edit-q-btn').forEach(b => b.addEventListener('click', () => openEditQuestionModal(b.dataset.id)));
-        document.querySelectorAll('.delete-q-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id, 'question')));
+        document.querySelectorAll('.delete-q-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id, currentQuestionCourseId, 'question')));
     }
 
-    document.getElementById('closeQuestionsBtn').addEventListener('click', () => {
-        questionsModal.classList.remove('active');
-    });
+    document.getElementById('closeQuestionsBtn').addEventListener('click', () => questionsModal.classList.remove('active'));
 
     // إضافة / تعديل سؤال
     const questionModal = document.getElementById('questionModal');
@@ -531,9 +594,7 @@
         choicesList.appendChild(row);
     });
 
-    document.getElementById('questionCancelBtn').addEventListener('click', () => {
-        questionModal.classList.remove('active');
-    });
+    document.getElementById('questionCancelBtn').addEventListener('click', () => questionModal.classList.remove('active'));
 
     questionForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -562,13 +623,12 @@
 
         try {
             if (questionId) {
-                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'exams', currentExamId, 'questions', questionId), data);
+                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId, 'questions', questionId), data);
                 showToast('تم تعديل السؤال');
             } else {
                 data.createdAt = Timestamp.now();
-                await addDoc(collection(db, 'teachers', TEACHER_ID, 'exams', currentExamId, 'questions'), data);
-                // تحديث عدد الأسئلة في الامتحان
-                const examRef = doc(db, 'teachers', TEACHER_ID, 'exams', currentExamId);
+                await addDoc(collection(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId, 'questions'), data);
+                const examRef = doc(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId);
                 const examSnap = await getDoc(examRef);
                 if (examSnap.exists()) {
                     const currentCount = examSnap.data().questionCount || 0;
@@ -580,14 +640,16 @@
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // حذف (امتحان أو سؤال)
+    // حذف عام (امتحان أو سؤال)
     const deleteModal = document.getElementById('deleteModal');
     const deleteModalMsg = document.getElementById('deleteModalMsg');
     let deleteType = '';
     let deleteId = '';
+    let deleteCourseId = '';
 
-    function openDeleteModal(id, type) {
+    function openDeleteModal(id, courseId, type) {
         deleteId = id;
+        deleteCourseId = courseId;
         deleteType = type;
         deleteModalMsg.textContent = type === 'exam' ? 'هل أنت متأكد من حذف هذا الامتحان؟' : 'هل أنت متأكد من حذف هذا السؤال؟';
         deleteModal.classList.add('active');
@@ -599,12 +661,11 @@
         if (!deleteId) return;
         try {
             if (deleteType === 'exam') {
-                await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'exams', deleteId));
+                await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'courses', deleteCourseId, 'exams', deleteId));
                 showToast('تم حذف الامتحان');
             } else if (deleteType === 'question') {
-                await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'exams', currentExamId, 'questions', deleteId));
-                // تحديث عدد الأسئلة
-                const examRef = doc(db, 'teachers', TEACHER_ID, 'exams', currentExamId);
+                await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId, 'questions', deleteId));
+                const examRef = doc(db, 'teachers', TEACHER_ID, 'courses', currentQuestionCourseId, 'exams', currentExamId);
                 const examSnap = await getDoc(examRef);
                 if (examSnap.exists()) {
                     const currentCount = examSnap.data().questionCount || 1;
@@ -616,7 +677,6 @@
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // إغلاق المودالات
     document.querySelectorAll('.modal-overlay').forEach(overlayEl => {
         overlayEl.addEventListener('click', (e) => {
             if (e.target === overlayEl) overlayEl.classList.remove('active');
@@ -630,12 +690,13 @@
         document.querySelector('.navbar h1').textContent = lc==='ar'?'📝 إدارة الامتحانات':'📝 Exams Management';
         document.getElementById('createExamBtn').innerHTML = `<i class="fas fa-plus-circle"></i> ${lc==='ar'?'إنشاء امتحان':'Create Exam'}`;
         const ths = document.querySelectorAll('th');
-        if (ths.length >= 5) {
+        if (ths.length >= 6) {
             ths[0].textContent = lc==='ar'?'العنوان':'Title';
-            ths[1].textContent = lc==='ar'?'المدة (دقيقة)':'Duration (min)';
-            ths[2].textContent = lc==='ar'?'عدد الأسئلة':'Questions';
-            ths[3].textContent = lc==='ar'?'الدرجة الكاملة':'Total Score';
-            ths[4].textContent = lc==='ar'?'إجراءات':'Actions';
+            ths[1].textContent = lc==='ar'?'الكورس':'Course';
+            ths[2].textContent = lc==='ar'?'المدة (دقيقة)':'Duration';
+            ths[3].textContent = lc==='ar'?'عدد الأسئلة':'Questions';
+            ths[4].textContent = lc==='ar'?'الدرجة الكاملة':'Score';
+            ths[5].textContent = lc==='ar'?'إجراءات':'Actions';
         }
         document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
     }
