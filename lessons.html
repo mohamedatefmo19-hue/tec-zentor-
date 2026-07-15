@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+  <title>Zentor · إدارة الدروس</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f4f7fc;
+      color: #0b1e33;
+      display: flex;
+      min-height: 100vh;
+    }
+    body.dark-mode { background: #0b0e14; color: #eef2f6; }
+
+    /* ---------- Sidebar ---------- */
+    .sidebar {
+      width: 260px; background: #ffffff; border-left: 1px solid #e7edf5;
+      padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed;
+      top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0);
+    }
+    body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
+    .sidebar.closed { transform: translateX(100%); }
+    .sidebar-logo { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem; }
+    .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
+    body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
+    .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
+    .sidebar nav { flex: 1; }
+    .sidebar nav a {
+      display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px;
+      color: #4a5b7a; text-decoration: none; font-weight: 500; transition: 0.15s; margin-bottom: 0.3rem;
+    }
+    .sidebar nav a i { width: 1.4rem; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: #eef4fe; color: #1a67c4; }
+    body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #1f2a40; color: #6b9ef0; }
+    .sidebar-footer {
+      border-top: 1px solid #e7edf5; padding-top: 1.2rem; margin-top: 0.5rem; font-size: 0.9rem;
+      font-weight: 600; color: #6b7d9c; cursor: pointer; display: flex; align-items: center; gap: 0.6rem;
+    }
+    .sidebar-footer:hover { color: #e74c3c; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+    .sidebar-overlay.show { display: block; }
+
+    /* ---------- Main ---------- */
+    .main {
+      flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease;
+      overflow-x: hidden; width: 100%;
+    }
+    .main.expanded { margin-right: 0; }
+    .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+    .navbar h1 { font-size: 1.7rem; font-weight: 700; }
+    .navbar-actions { display: flex; align-items: center; gap: 1.2rem; }
+    .navbar-actions button { background: none; border: none; font-size: 1.2rem; color: #4a5b7a; cursor: pointer; }
+    body.dark-mode .navbar-actions button { color: #b0c0d4; }
+    .navbar-actions button:hover { color: #2a7de1; }
+    .lang-dark { display: flex; gap: 0.6rem; }
+    .lang-dark button { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; }
+    .lang-dark .dark-toggle { color: #6b7d9c; }
+    body.dark-mode .lang-dark .dark-toggle { color: #b0c0d4; }
+    .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
+    body.dark-mode .hamburger { color: #b0c0d4; }
+
+    /* ---------- Toolbar ---------- */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem; align-items: center; }
+    .toolbar .search-box {
+      flex: 1; min-width: 200px; display: flex; align-items: center; background: #ffffff;
+      border: 1.5px solid #dfe6f0; border-radius: 40px; padding: 0.4rem 0.4rem 0.4rem 1.2rem; transition: 0.15s;
+    }
+    body.dark-mode .toolbar .search-box { background: #1a1f2b; border-color: #3b465b; }
+    .toolbar .search-box:focus-within { border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.1); }
+    .toolbar .search-box input {
+      border: none; background: transparent; padding: 0.6rem 0; flex: 1; font-size: 0.95rem; outline: none; color: #1a253a;
+    }
+    body.dark-mode .toolbar .search-box input { color: #eef2f6; }
+    .toolbar .search-box button {
+      background: #2a7de1; border: none; color: white; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.15s;
+    }
+    .toolbar .search-box button:hover { background: #1a67c4; }
+    .filter-group { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .filter-group select {
+      padding: 0.6rem 1.2rem; border-radius: 40px; border: 1.5px solid #dfe6f0; background: #ffffff; font-weight: 500; color: #1a253a; cursor: pointer;
+    }
+    body.dark-mode .filter-group select { background: #1a1f2b; border-color: #3b465b; color: #eef2f6; }
+    .btn-primary {
+      background: #2a7de1; color: white; border: none; padding: 0.6rem 1.4rem; border-radius: 40px;
+      font-weight: 600; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+    }
+    .btn-primary:hover { background: #1a67c4; }
+    .btn-secondary {
+      background: #eef2f8; color: #1a253a; border: none; padding: 0.6rem 1.4rem; border-radius: 40px;
+      font-weight: 600; cursor: pointer; transition: 0.15s; display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+    }
+    body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
+    .btn-secondary:hover { background: #dfe6f0; }
+
+    /* ---------- Table ---------- */
+    .table-wrapper {
+      background: #ffffff; border-radius: 20px; border: 1px solid #eef2f8; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+    body.dark-mode .table-wrapper { background: #1a1f2b; border-color: #2a3442; }
+    .table-responsive { overflow-x: auto; padding: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead { background: #f9fbfe; border-bottom: 2px solid #eef2f8; }
+    body.dark-mode thead { background: #141a26; border-bottom-color: #2a3442; }
+    th {
+      text-align: right; padding: 0.9rem 1rem; font-weight: 600; color: #4a5b7a; white-space: nowrap; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.3px;
+    }
+    body.dark-mode th { color: #b0c0d4; }
+    td { padding: 0.9rem 1rem; border-bottom: 1px solid #eef2f8; vertical-align: middle; }
+    body.dark-mode td { border-bottom-color: #2a3442; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(42,125,225,0.02); }
+    .lesson-title { font-weight: 600; }
+    .lesson-course { color: #6b7d9c; font-size: 0.85rem; }
+    body.dark-mode .lesson-course { color: #9aabbf; }
+    .badge-status {
+      display: inline-block; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: 600;
+      background: #e8f0fe; color: #1a67c4;
+    }
+    .badge-status.unpublished { background: #fef3e2; color: #b9770e; }
+    .action-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .action-btns button {
+      padding: 0.3rem 0.8rem; border-radius: 30px; border: none; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.1s;
+    }
+    .action-btns .edit { background: #e8f0fe; color: #1a67c4; }
+    .action-btns .edit:hover { background: #d0e0fc; }
+    .action-btns .publish { background: #e3f5e9; color: #1f7840; }
+    .action-btns .publish:hover { background: #c8ecd4; }
+    .action-btns .unpublish { background: #fef3e2; color: #b9770e; }
+    .action-btns .unpublish:hover { background: #fce4b8; }
+    .action-btns .delete { background: #fde8e8; color: #b3403a; }
+    .action-btns .delete:hover { background: #f5c8c8; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #8a9bb5; }
+    .empty-state i { font-size: 3rem; margin-bottom: 0.8rem; opacity: 0.5; }
+
+    /* ---------- Modal ---------- */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #ffffff; border-radius: 28px; max-width: 520px; width: 100%; padding: 2rem;
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;
+    }
+    body.dark-mode .modal { background: #1a1f2b; }
+    .modal h2 { margin-bottom: 1.2rem; font-weight: 700; }
+    .modal .form-group { margin-bottom: 1.2rem; }
+    .modal .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .modal .form-group input, .modal .form-group textarea, .modal .form-group select {
+      width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #dfe6f0; border-radius: 14px; font-size: 0.95rem; background: #f9fbfe;
+    }
+    body.dark-mode .modal .form-group input, body.dark-mode .modal .form-group textarea, body.dark-mode .modal .form-group select {
+      background: #252d3d; border-color: #3b465b; color: #eef2f6;
+    }
+    .modal .form-group input:focus, .modal .form-group textarea:focus { outline: none; border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.1); }
+    .modal .form-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; justify-content: flex-end; }
+    .modal .form-actions button { padding: 0.6rem 1.8rem; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; }
+    .modal .form-actions .cancel { background: #eef2f8; color: #1a253a; }
+    .modal .form-actions .submit { background: #2a7de1; color: white; }
+    .modal .form-actions .submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ---------- Toast ---------- */
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display: flex; flex-direction: column; gap: 0.5rem; }
+    .toast {
+      padding: 0.8rem 1.5rem; border-radius: 14px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease;
+    }
+    body.dark-mode .toast { background: #2a3442; color: #eef2f6; }
+    .toast.success { border-right: 4px solid #10B981; }
+    .toast.error { border-right: 4px solid #EF4444; }
+    @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .action-bar { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+
+    @media (max-width: 768px) {
+      .hamburger { display: block; }
+      .main { margin-right: 0; }
+      .sidebar { transform: translateX(100%); }
+      .sidebar.closed { transform: translateX(100%); }
+      .sidebar.open { transform: translateX(0); }
+      .action-btns { flex-direction: column; }
+    }
+    @media (max-width: 480px) { .toolbar { flex-direction: column; align-items: stretch; } .toolbar .search-box { width: 100%; } .action-bar { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
+    <nav>
+      <a href="dashboard.html"><i class="fas fa-chart-pie"></i> <span data-key="dashboard">لوحة التحكم</span></a>
+      <a href="courses.html"><i class="fas fa-book-open"></i> <span data-key="courses">الكورسات</span></a>
+      <a href="lessons.html" class="active"><i class="fas fa-file-alt"></i> <span data-key="lessons">الدروس</span></a>
+      <a href="live-classes.html"><i class="fas fa-video"></i> <span data-key="live">البث المباشر</span></a>
+      <a href="students.html"><i class="fas fa-users"></i> <span data-key="students">الطلاب</span></a>
+      <a href="assignments.html"><i class="fas fa-clipboard-list"></i> <span data-key="assignments">الواجبات</span></a>
+      <a href="exams.html"><i class="fas fa-file-alt"></i> <span data-key="exams">الامتحانات</span></a>
+      <a href="revenue.html"><i class="fas fa-dollar-sign"></i> <span data-key="revenue">الإيرادات</span></a>
+      <a href="messages.html"><i class="fas fa-comments"></i> <span data-key="messages">الرسائل</span></a>
+      <a href="settings.html"><i class="fas fa-cog"></i> <span data-key="settings">الإعدادات</span></a>
+    </nav>
+    <div class="sidebar-footer" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> <span data-key="logout">تسجيل الخروج</span></div>
+  </aside>
+
+  <div class="main" id="mainContent">
+    <header class="navbar">
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+        <h1>📝 الدروس</h1>
+      </div>
+      <div class="navbar-actions">
+        <div class="lang-dark">
+          <button id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
+          <button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
+        </div>
+        <button><i class="fas fa-user-circle" style="font-size:1.6rem;"></i></button>
+      </div>
+    </header>
+
+    <div class="action-bar">
+      <a href="#" id="backToCourseBtn" class="btn-secondary"><i class="fas fa-arrow-left"></i> العودة للكورس</a>
+      <a href="lesson-upload.html" id="uploadLessonBtn" class="btn-primary"><i class="fas fa-upload"></i> رفع درس جديد</a>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="بحث عن درس...">
+        <button id="searchBtn"><i class="fas fa-search"></i></button>
+      </div>
+      <div class="filter-group">
+        <select id="statusFilter">
+          <option value="all">جميع الحالات</option>
+          <option value="published">منشور</option>
+          <option value="unpublished">غير منشور</option>
+        </select>
+        <select id="courseFilter">
+          <option value="all">جميع الكورسات</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>العنوان</th>
+              <th>الكورس</th>
+              <th>الحالة</th>
+              <th style="min-width: 180px;">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="lessonsBody">
+            <tr><td colspan="4"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري تحميل الدروس...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---------- Modal: تعديل درس ---------- -->
+  <div class="modal-overlay" id="lessonModal">
+    <div class="modal">
+      <h2 id="modalTitle">تعديل درس</h2>
+      <form id="lessonForm">
+        <input type="hidden" id="lessonId">
+        <div class="form-group"><label>العنوان</label><input type="text" id="formTitle" required placeholder="عنوان الدرس"></div>
+        <div class="form-group"><label>الوصف</label><textarea id="formDesc" rows="2" placeholder="وصف مختصر"></textarea></div>
+        <div class="form-group"><label>الكورس</label><select id="formCourse"></select></div>
+        <div class="form-group"><label>الحالة</label><select id="formStatus"><option value="published">منشور</option><option value="unpublished">غير منشور</option></select></div>
+        <div class="form-actions">
+          <button type="button" class="cancel" id="modalCancel">إلغاء</button>
+          <button type="submit" class="submit" id="modalSubmit">حفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import {
+      getFirestore, collection, getDocs, updateDoc, deleteDoc, doc, query, orderBy, Timestamp
+    } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+      authDomain: "zentor-caaf1.firebaseapp.com",
+      projectId: "zentor-caaf1",
+      storageBucket: "zentor-caaf1.firebasestorage.app",
+      messagingSenderId: "681267238383",
+      appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+      measurementId: "G-X80GNJHMS5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let TEACHER_ID = '';
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseIdParam = urlParams.get('courseId');
+
+    // DOM elements
+    const tbody = document.getElementById('lessonsBody');
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const courseFilter = document.getElementById('courseFilter');
+    const modal = document.getElementById('lessonModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const form = document.getElementById('lessonForm');
+    const lessonIdEl = document.getElementById('lessonId');
+    const formTitle = document.getElementById('formTitle');
+    const formDesc = document.getElementById('formDesc');
+    const formCourse = document.getElementById('formCourse');
+    const formStatus = document.getElementById('formStatus');
+    const modalSubmit = document.getElementById('modalSubmit');
+    const modalCancel = document.getElementById('modalCancel');
+    const backToCourseBtn = document.getElementById('backToCourseBtn');
+    const uploadLessonBtn = document.getElementById('uploadLessonBtn');
+
+    let allLessons = [];
+    let allCourses = [];
+    let editingId = null;
+
+    // ---------- حماية ----------
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      TEACHER_ID = user.uid;
+      document.body.classList.add('auth-ready');
+      await loadCourses();
+      loadLessons();
+    });
+
+    // ---------- Sidebar Mobile ----------
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+    document.querySelectorAll('.sidebar nav a').forEach(link => {
+      link.addEventListener('click', () => { if (window.innerWidth <= 768) { sidebar.classList.remove('open'); overlay.classList.remove('show'); } });
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html');
+    });
+
+    // ---------- Toast ----------
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div'); toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
+      container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ---------- Load Courses ----------
+    async function loadCourses() {
+      try {
+        const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'courses'));
+        allCourses = []; snap.forEach(doc => allCourses.push({ id: doc.id, ...doc.data() }));
+        // تعبئة فلتر الكورسات
+        courseFilter.innerHTML = '<option value="all">جميع الكورسات</option>';
+        formCourse.innerHTML = '';
+        allCourses.forEach(c => {
+          courseFilter.innerHTML += `<option value="${c.id}">${c.title || 'بدون عنوان'}</option>`;
+          formCourse.innerHTML += `<option value="${c.id}">${c.title || 'بدون عنوان'}</option>`;
+        });
+        if (courseIdParam) {
+          courseFilter.value = courseIdParam;
+          backToCourseBtn.href = `course-details.html?id=${courseIdParam}`;
+          uploadLessonBtn.href = `lesson-upload.html?courseId=${courseIdParam}`;
+        } else {
+          backToCourseBtn.href = 'courses.html';
+          uploadLessonBtn.href = 'lesson-upload.html';
+        }
+      } catch (e) { showToast('فشل تحميل الكورسات', 'error'); }
+    }
+
+    // ---------- Load Lessons ----------
+    async function loadLessons() {
+      try {
+        const q = query(collection(db, 'teachers', TEACHER_ID, 'lessons'), orderBy('createdAt', 'desc'));
+        const snap = await getDocs(q);
+        allLessons = []; snap.forEach(doc => allLessons.push({ id: doc.id, ...doc.data() }));
+        renderLessons();
+      } catch (e) {
+        showToast('فشل تحميل الدروس', 'error');
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-exclamation-triangle"></i><br>خطأ في التحميل</div></td></tr>';
+      }
+    }
+
+    function renderLessons() {
+      const search = searchInput.value.toLowerCase().trim();
+      const status = statusFilter.value;
+      const course = courseFilter.value;
+
+      let filtered = allLessons.filter(l => {
+        const matchSearch = (l.title||'').toLowerCase().includes(search) || (l.description||'').toLowerCase().includes(search);
+        const matchStatus = status === 'all' || l.status === status;
+        const matchCourse = course === 'all' || l.courseId === course;
+        return matchSearch && matchStatus && matchCourse;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><i class="fas fa-file-alt"></i><br>لا توجد دروس</div></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        const courseName = allCourses.find(c => c.id === l.courseId)?.title || 'كورس غير معروف';
+        const statusClass = l.status === 'unpublished' ? 'unpublished' : '';
+        const statusLabel = l.status === 'published' ? 'منشور' : 'غير منشور';
+        const isPublished = l.status === 'published';
+        return `
+          <tr>
+            <td><div class="lesson-title">${l.title || 'بدون عنوان'}</div></td>
+            <td><div class="lesson-course">${courseName}</div></td>
+            <td><span class="badge-status ${statusClass}">${statusLabel}</span></td>
+            <td>
+              <div class="action-btns">
+                <button class="edit" data-id="${l.id}"><i class="fas fa-edit"></i> تعديل</button>
+                <button class="${isPublished ? 'unpublish' : 'publish'}" data-id="${l.id}">
+                  ${isPublished ? 'إخفاء' : 'نشر'}
+                </button>
+                <button class="delete" data-id="${l.id}"><i class="fas fa-trash"></i> حذف</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('.edit').forEach(btn => btn.addEventListener('click', () => openEdit(btn.dataset.id)));
+      tbody.querySelectorAll('.publish, .unpublish').forEach(btn => btn.addEventListener('click', () => togglePublish(btn.dataset.id)));
+      tbody.querySelectorAll('.delete').forEach(btn => btn.addEventListener('click', () => deleteLesson(btn.dataset.id)));
+    }
+
+    // ---------- Save Lesson (edit only) ----------
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = formTitle.value.trim(), description = formDesc.value.trim();
+      const selectedCourseId = formCourse.value, status = formStatus.value;
+      if (!title) { showToast('العنوان مطلوب', 'error'); return; }
+      if (!selectedCourseId) { showToast('اختر كورسًا', 'error'); return; }
+
+      modalSubmit.disabled = true; modalSubmit.textContent = 'جاري الحفظ...';
+      try {
+        await updateDoc(doc(db, 'teachers', TEACHER_ID, 'lessons', editingId), {
+          title, description, courseId: selectedCourseId, status, updatedAt: Timestamp.now()
+        });
+        showToast('تم التعديل!', 'success');
+        closeModal(); loadLessons();
+      } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
+      finally { modalSubmit.disabled = false; modalSubmit.textContent = 'حفظ'; }
+    });
+
+    async function deleteLesson(id) {
+      if (!confirm('حذف هذا الدرس نهائياً؟')) return;
+      try { await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'lessons', id)); showToast('تم الحذف'); loadLessons(); }
+      catch (e) { showToast('خطأ في الحذف', 'error'); }
+    }
+
+    async function togglePublish(id) {
+      const lesson = allLessons.find(l => l.id === id);
+      const newStatus = lesson.status === 'published' ? 'unpublished' : 'published';
+      try {
+        await updateDoc(doc(db, 'teachers', TEACHER_ID, 'lessons', id), { status: newStatus });
+        showToast(newStatus === 'published' ? 'تم النشر' : 'تم الإخفاء', 'success');
+        loadLessons();
+      } catch (e) { showToast('خطأ', 'error'); }
+    }
+
+    function openEdit(id) {
+      const lesson = allLessons.find(l => l.id === id);
+      if (!lesson) return;
+      editingId = id; modalTitle.textContent = 'تعديل درس';
+      lessonIdEl.value = id; formTitle.value = lesson.title || ''; formDesc.value = lesson.description || '';
+      formCourse.value = lesson.courseId || ''; formStatus.value = lesson.status || 'published';
+      modal.classList.add('active');
+    }
+
+    function closeModal() { modal.classList.remove('active'); }
+
+    modalCancel.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    searchInput.addEventListener('input', renderLessons);
+    statusFilter.addEventListener('change', renderLessons);
+    courseFilter.addEventListener('change', renderLessons);
+
+    // ---------- لغة ووضع ليلي ----------
+    let lang = 'ar';
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
+    const mainEl = document.getElementById('mainContent');
+    const translations = {
+      ar: { dashboard:'لوحة التحكم', courses:'الكورسات', lessons:'الدروس', live:'البث المباشر', students:'الطلاب', assignments:'الواجبات', exams:'الامتحانات', revenue:'الإيرادات', messages:'الرسائل', settings:'الإعدادات', logout:'تسجيل الخروج' },
+      en: { dashboard:'Dashboard', courses:'Courses', lessons:'Lessons', live:'Live Classes', students:'Students', assignments:'Assignments', exams:'Exams', revenue:'Revenue', messages:'Messages', settings:'Settings', logout:'Logout' }
+    };
+    function applyLanguage(lc) {
+      const t = translations[lc];
+      document.querySelectorAll('[data-key]').forEach(el => { if(t[el.dataset.key]) el.textContent = t[el.dataset.key]; });
+      document.querySelector('.navbar h1').textContent = lc==='ar' ? '📝 الدروس' : '📝 Lessons';
+      document.getElementById('searchInput').placeholder = lc==='ar' ? 'بحث عن درس...' : 'Search lessons...';
+      document.querySelector('#statusFilter option[value="all"]').textContent = lc==='ar' ? 'جميع الحالات' : 'All Status';
+      document.querySelector('#statusFilter option[value="published"]').textContent = lc==='ar' ? 'منشور' : 'Published';
+      document.querySelector('#statusFilter option[value="unpublished"]').textContent = lc==='ar' ? 'غير منشور' : 'Unpublished';
+      document.querySelector('#courseFilter option[value="all"]').textContent = lc==='ar' ? 'جميع الكورسات' : 'All Courses';
+      document.querySelectorAll('th')[0].textContent = lc==='ar' ? 'العنوان' : 'Title';
+      document.querySelectorAll('th')[1].textContent = lc==='ar' ? 'الكورس' : 'Course';
+      document.querySelectorAll('th')[2].textContent = lc==='ar' ? 'الحالة' : 'Status';
+      document.querySelectorAll('th')[3].textContent = lc==='ar' ? 'إجراءات' : 'Actions';
+      if (lc === 'ar') { mainEl.style.marginRight = '260px'; mainEl.style.marginLeft = '0'; document.documentElement.dir = 'rtl'; }
+      else { mainEl.style.marginRight = '0'; mainEl.style.marginLeft = '260px'; document.documentElement.dir = 'ltr'; }
+    }
+    langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
+    darkToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      darkToggle.innerHTML = document.body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+    applyLanguage('ar');
+    console.log('✅ Zentor Lessons ready.');
+  </script>
+</body>
+</html>
