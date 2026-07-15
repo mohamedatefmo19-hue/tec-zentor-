@@ -46,6 +46,8 @@
         body.dark-mode .hamburger { color: #b0c0d4; }
 
         .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem; align-items: center; }
+        .toolbar .filter-select { padding: 0.6rem 1.2rem; border-radius: 40px; border: 1.5px solid #dfe6f0; background: white; font-weight: 500; min-width: 180px; }
+        body.dark-mode .toolbar .filter-select { background: #1a1f2b; border-color: #3b465b; color: #eef2f6; }
         .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; font-size: 0.9rem; white-space: nowrap; }
         .btn-primary { background: #2a7de1; color: white; }
         .btn-primary:hover { background: #1a67c4; }
@@ -143,6 +145,9 @@
     </header>
 
     <div class="toolbar">
+        <select class="filter-select" id="courseFilter">
+            <option value="all">📚 كل الكورسات</option>
+        </select>
         <button class="btn btn-primary" id="createAssignmentBtn"><i class="fas fa-plus-circle"></i> إنشاء واجب</button>
     </div>
 
@@ -152,6 +157,7 @@
                 <thead>
                     <tr>
                         <th>العنوان</th>
+                        <th>الكورس</th>
                         <th>الموعد النهائي</th>
                         <th>الدرجة الكاملة</th>
                         <th>التسليمات</th>
@@ -159,7 +165,7 @@
                     </tr>
                 </thead>
                 <tbody id="assignmentsTableBody">
-                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr>
+                    <tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr>
                 </tbody>
             </table>
         </div>
@@ -172,6 +178,7 @@
         <h2 id="assignmentModalTitle">إنشاء واجب</h2>
         <form id="assignmentForm">
             <input type="hidden" id="assignmentId">
+            <div class="form-group"><label>الكورس</label><select id="assignmentCourse" required></select></div>
             <div class="form-group"><label>العنوان</label><input type="text" id="assignmentTitle" required></div>
             <div class="form-group"><label>الوصف</label><textarea id="assignmentDescription" rows="2"></textarea></div>
             <div class="form-group"><label>الموعد النهائي</label><input type="datetime-local" id="assignmentDeadline" required></div>
@@ -228,7 +235,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot, Timestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
@@ -245,8 +252,13 @@
     const db = getFirestore(app);
 
     let TEACHER_ID = '';
+    let allCourses = [];
+    let currentCourseId = null; // الكورس المحدد حاليًا للفلتر
+    let allAssignments = [];
+    let currentAssignmentId = null;
+    let unsubscribes = []; // لإلغاء الاشتراكات السابقة
 
-    // التحقق من المعلم (باستخدام settings/preferences)
+    // التحقق من المعلم
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
         TEACHER_ID = user.uid;
@@ -259,7 +271,8 @@
             }
         } catch (e) { console.error('خطأ في التحقق:', e); }
         document.body.classList.add('auth-ready');
-        listenToAssignments();
+        await loadCourses();
+        applyCourseFilter('all'); // عرض كل الواجبات مبدئيًا
     });
 
     // الشريط الجانبي
@@ -276,50 +289,116 @@
         container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
     }
 
-    const tableBody = document.getElementById('assignmentsTableBody');
-    let allAssignments = [];
-    let currentAssignmentId = null;
+    // تحميل قائمة الكورسات
+    async function loadCourses() {
+        try {
+            const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'courses'));
+            allCourses = [];
+            const filterSelect = document.getElementById('courseFilter');
+            filterSelect.innerHTML = '<option value="all">📚 كل الكورسات</option>';
+            snap.forEach(doc => {
+                const data = doc.data();
+                allCourses.push({ id: doc.id, name: data.name || 'كورس بدون اسم' });
+                filterSelect.innerHTML += `<option value="${doc.id}">${data.name || 'كورس بدون اسم'}</option>`;
+            });
+            // أيضًا تحديث قائمة الكورسات في المودال
+            updateCourseSelectInModal();
+        } catch (e) {
+            console.error(e);
+            showToast('فشل تحميل الكورسات', 'error');
+        }
+    }
 
-    function listenToAssignments() {
-        const q = query(collection(db, 'teachers', TEACHER_ID, 'assignments'), orderBy('createdAt', 'desc'));
-        onSnapshot(q, snapshot => {
-            allAssignments = [];
-            snapshot.forEach(docSnap => allAssignments.push({ id: docSnap.id, ...docSnap.data() }));
-            renderTable(allAssignments);
-        }, error => {
-            console.error(error);
-            showToast('فشل تحميل الواجبات', 'error');
+    function updateCourseSelectInModal() {
+        const select = document.getElementById('assignmentCourse');
+        if (!select) return;
+        select.innerHTML = '';
+        allCourses.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
         });
     }
 
+    // فلترة حسب الكورس
+    document.getElementById('courseFilter').addEventListener('change', (e) => {
+        const val = e.target.value;
+        applyCourseFilter(val);
+    });
+
+    function applyCourseFilter(courseIdOrAll) {
+        // إلغاء أي استماع سابق
+        unsubscribes.forEach(unsub => unsub());
+        unsubscribes = [];
+        allAssignments = [];
+
+        if (courseIdOrAll === 'all') {
+            // استمع إلى جميع الواجبات في جميع الكورسات
+            if (allCourses.length === 0) {
+                renderTable([]);
+                return;
+            }
+            allCourses.forEach(course => {
+                const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', course.id, 'assignments'), orderBy('createdAt', 'desc'));
+                const unsub = onSnapshot(q, snapshot => {
+                    // إزالة الواجبات القديمة لهذا الكورس وإضافة الجديدة
+                    allAssignments = allAssignments.filter(a => a.courseId !== course.id);
+                    snapshot.forEach(docSnap => {
+                        allAssignments.push({ id: docSnap.id, ...docSnap.data(), courseId: course.id, courseName: course.name });
+                    });
+                    // ترتيب محلي تنازليًا حسب createdAt
+                    allAssignments.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+                    renderTable(allAssignments);
+                });
+                unsubscribes.push(unsub);
+            });
+        } else {
+            // استمع إلى واجبات كورس واحد
+            currentCourseId = courseIdOrAll;
+            const course = allCourses.find(c => c.id === courseIdOrAll);
+            const courseName = course ? course.name : '';
+            const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', courseIdOrAll, 'assignments'), orderBy('createdAt', 'desc'));
+            const unsub = onSnapshot(q, snapshot => {
+                allAssignments = [];
+                snapshot.forEach(docSnap => {
+                    allAssignments.push({ id: docSnap.id, ...docSnap.data(), courseId: courseIdOrAll, courseName: courseName });
+                });
+                renderTable(allAssignments);
+            });
+            unsubscribes.push(unsub);
+        }
+    }
+
+    const tableBody = document.getElementById('assignmentsTableBody');
+
     function renderTable(assignments) {
         if (!assignments.length) {
-            tableBody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-clipboard"></i><p>لا توجد واجبات بعد</p></div></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-clipboard"></i><p>لا توجد واجبات</p></div></td></tr>';
             return;
         }
         tableBody.innerHTML = assignments.map(a => {
             const deadline = a.deadline ? new Date(a.deadline.seconds * 1000).toLocaleString('ar-EG') : '—';
             const maxScore = a.maxScore || 100;
+            const courseName = a.courseName || '—';
             return `<tr>
                 <td><strong>${a.title || ''}</strong></td>
+                <td>${courseName}</td>
                 <td>${deadline}</td>
                 <td>${maxScore}</td>
-                <td><button class="btn btn-sm btn-secondary view-submissions-btn" data-id="${a.id}"><i class="fas fa-eye"></i> عرض التسليمات</button></td>
+                <td><button class="btn btn-sm btn-secondary view-submissions-btn" data-id="${a.id}" data-course="${a.courseId}"><i class="fas fa-eye"></i> عرض التسليمات</button></td>
                 <td>
                     <div class="actions">
-                        <button class="action-btn edit-btn" data-id="${a.id}"><i class="fas fa-pen"></i></button>
-                        <button class="action-btn text-danger delete-btn" data-id="${a.id}"><i class="fas fa-trash"></i></button>
+                        <button class="action-btn edit-btn" data-id="${a.id}" data-course="${a.courseId}"><i class="fas fa-pen"></i></button>
+                        <button class="action-btn text-danger delete-btn" data-id="${a.id}" data-course="${a.courseId}"><i class="fas fa-trash"></i></button>
                     </div>
                 </td>
             </tr>`;
         }).join('');
 
-        document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.id)));
-        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id)));
-        document.querySelectorAll('.view-submissions-btn').forEach(b => b.addEventListener('click', () => openSubmissionsModal(b.dataset.id)));
+        document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEditModal(b.dataset.id, b.dataset.course)));
+        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id, b.dataset.course)));
+        document.querySelectorAll('.view-submissions-btn').forEach(b => b.addEventListener('click', () => openSubmissionsModal(b.dataset.id, b.dataset.course)));
     }
 
-    // إنشاء واجب
+    // إنشاء واجب جديد
     document.getElementById('createAssignmentBtn').addEventListener('click', () => {
         document.getElementById('assignmentModalTitle').textContent = 'إنشاء واجب';
         document.getElementById('assignmentId').value = '';
@@ -327,11 +406,13 @@
         document.getElementById('assignmentDescription').value = '';
         document.getElementById('assignmentDeadline').value = '';
         document.getElementById('assignmentMaxScore').value = '100';
+        updateCourseSelectInModal();
+        document.getElementById('assignmentCourse').value = currentCourseId || (allCourses[0]?.id || '');
         document.getElementById('assignmentModal').classList.add('active');
     });
 
-    function openEditModal(id) {
-        const assignment = allAssignments.find(a => a.id === id);
+    function openEditModal(assignmentId, courseId) {
+        const assignment = allAssignments.find(a => a.id === assignmentId && a.courseId === courseId);
         if (!assignment) return;
         document.getElementById('assignmentModalTitle').textContent = 'تعديل الواجب';
         document.getElementById('assignmentId').value = assignment.id;
@@ -340,6 +421,8 @@
         const deadlineDate = assignment.deadline ? new Date(assignment.deadline.seconds * 1000) : new Date();
         document.getElementById('assignmentDeadline').value = deadlineDate.toISOString().slice(0,16);
         document.getElementById('assignmentMaxScore').value = assignment.maxScore || 100;
+        updateCourseSelectInModal();
+        document.getElementById('assignmentCourse').value = assignment.courseId;
         document.getElementById('assignmentModal').classList.add('active');
     }
 
@@ -350,6 +433,8 @@
     document.getElementById('assignmentForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('assignmentId').value;
+        const courseId = document.getElementById('assignmentCourse').value;
+        if (!courseId) { showToast('الرجاء اختيار كورس', 'error'); return; }
         const data = {
             title: document.getElementById('assignmentTitle').value.trim(),
             description: document.getElementById('assignmentDescription').value.trim(),
@@ -359,11 +444,11 @@
         };
         try {
             if (id) {
-                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', id), data);
+                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'courses', courseId, 'assignments', id), data);
                 showToast('تم تعديل الواجب');
             } else {
                 data.createdAt = Timestamp.now();
-                await addDoc(collection(db, 'teachers', TEACHER_ID, 'assignments'), data);
+                await addDoc(collection(db, 'teachers', TEACHER_ID, 'courses', courseId, 'assignments'), data);
                 showToast('تم إنشاء الواجب');
             }
             document.getElementById('assignmentModal').classList.remove('active');
@@ -372,28 +457,33 @@
 
     // حذف واجب
     const deleteModal = document.getElementById('deleteModal');
-    function openDeleteModal(id) {
-        currentAssignmentId = id;
+    let deleteCourseId = null;
+    function openDeleteModal(assignmentId, courseId) {
+        currentAssignmentId = assignmentId;
+        deleteCourseId = courseId;
         deleteModal.classList.add('active');
     }
     document.getElementById('deleteCancelBtn').addEventListener('click', () => deleteModal.classList.remove('active'));
     document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-        if (!currentAssignmentId) return;
+        if (!currentAssignmentId || !deleteCourseId) return;
         try {
-            await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', currentAssignmentId));
+            await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'courses', deleteCourseId, 'assignments', currentAssignmentId));
             showToast('تم حذف الواجب');
             deleteModal.classList.remove('active');
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // عرض التسليمات
+    // عرض التسليمات (مع إضافة درجة)
     const submissionsModal = document.getElementById('submissionsModal');
     const submissionsContent = document.getElementById('submissionsContent');
-    function openSubmissionsModal(assignmentId) {
+    let submissionsCourseId = null;
+
+    function openSubmissionsModal(assignmentId, courseId) {
         currentAssignmentId = assignmentId;
+        submissionsCourseId = courseId;
         submissionsModal.classList.add('active');
         submissionsContent.innerHTML = '<p>جاري التحميل...</p>';
-        const q = query(collection(db, 'teachers', TEACHER_ID, 'assignments', assignmentId, 'submissions'), orderBy('submittedAt', 'desc'));
+        const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', courseId, 'assignments', assignmentId, 'submissions'), orderBy('submittedAt', 'desc'));
         onSnapshot(q, snapshot => {
             if (snapshot.empty) {
                 submissionsContent.innerHTML = '<p>لا توجد تسليمات حتى الآن</p>';
@@ -420,9 +510,10 @@
             document.querySelectorAll('.grade-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const submissionId = btn.dataset.id;
-                    const maxScore = Number(btn.dataset.max);
-                    openGradeModal(submissionId, maxScore);
+                    document.getElementById('gradeSubmissionId').value = btn.dataset.id;
+                    document.getElementById('gradeScore').max = btn.dataset.max;
+                    document.getElementById('gradeScore').value = '';
+                    document.getElementById('gradeModal').classList.add('active');
                 });
             });
         });
@@ -432,51 +523,35 @@
     });
 
     // مودال الدرجة
-    const gradeModal = document.getElementById('gradeModal');
-    const gradeForm = document.getElementById('gradeForm');
-    function openGradeModal(submissionId, maxScore) {
-        document.getElementById('gradeSubmissionId').value = submissionId;
-        document.getElementById('gradeScore').max = maxScore;
-        document.getElementById('gradeScore').value = '';
-        gradeModal.classList.add('active');
-    }
-    document.getElementById('gradeCancelBtn').addEventListener('click', () => gradeModal.classList.remove('active'));
-    gradeForm.addEventListener('submit', async (e) => {
+    document.getElementById('gradeCancelBtn').addEventListener('click', () => document.getElementById('gradeModal').classList.remove('active'));
+    document.getElementById('gradeForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const submissionId = document.getElementById('gradeSubmissionId').value;
         const score = Number(document.getElementById('gradeScore').value);
-        if (!submissionId || !currentAssignmentId) return;
+        if (!submissionId || !currentAssignmentId || !submissionsCourseId) return;
         try {
-            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', currentAssignmentId, 'submissions', submissionId), {
+            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'courses', submissionsCourseId, 'assignments', currentAssignmentId, 'submissions', submissionId), {
                 grade: score,
                 gradedAt: Timestamp.now()
             });
             showToast('تم حفظ الدرجة');
-            gradeModal.classList.remove('active');
+            document.getElementById('gradeModal').classList.remove('active');
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // إغلاق المودالات بالنقر خارجها
+    // إغلاق المودالات
     document.querySelectorAll('.modal-overlay').forEach(overlayEl => {
         overlayEl.addEventListener('click', (e) => {
             if (e.target === overlayEl) overlayEl.classList.remove('active');
         });
     });
 
-    // لغة ووضع ليلي
+    // لغة ووضع ليلي (اختصار)
     let lang = 'ar';
     const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
     function applyLanguage(lc) {
-        document.querySelector('.navbar h1').textContent = lc==='ar'?'📋 إدارة الواجبات':'📋 Assignments Management';
-        document.getElementById('createAssignmentBtn').innerHTML = `<i class="fas fa-plus-circle"></i> ${lc==='ar'?'إنشاء واجب':'Create Assignment'}`;
-        const ths = document.querySelectorAll('th');
-        if (ths.length >= 5) {
-            ths[0].textContent = lc==='ar'?'العنوان':'Title';
-            ths[1].textContent = lc==='ar'?'الموعد النهائي':'Deadline';
-            ths[2].textContent = lc==='ar'?'الدرجة الكاملة':'Max Score';
-            ths[3].textContent = lc==='ar'?'التسليمات':'Submissions';
-            ths[4].textContent = lc==='ar'?'إجراءات':'Actions';
-        }
+        document.querySelector('.navbar h1').textContent = lc==='ar'?'📋 إدارة الواجبات':'📋 Assignments';
+        document.getElementById('createAssignmentBtn').innerHTML = `<i class="fas fa-plus-circle"></i> ${lc==='ar'?'إنشاء واجب':'Create'}`;
         document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
     }
     langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
