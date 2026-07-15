@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Zentor · المحادثات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #0b1e33; display: flex; min-height: 100vh; }
+        body.dark-mode { background: #0b0e14; color: #eef2f6; }
+
+        .sidebar { width: 260px; background: #ffffff; border-left: 1px solid #e7edf5; padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed; top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0); }
+        body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
+        .sidebar.closed { transform: translateX(100%); }
+        .sidebar-logo { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem; }
+        .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
+        body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
+        .sidebar nav { flex: 1; }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px; color: #4a5b7a; text-decoration: none; font-weight: 500; transition: 0.15s; margin-bottom: 0.3rem; }
+        .sidebar nav a i { width: 1.4rem; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: #eef4fe; color: #1a67c4; }
+        body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-footer { border-top: 1px solid #e7edf5; padding-top: 1.2rem; margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #6b7d9c; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; }
+        .sidebar-footer:hover { color: #e74c3c; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+        .sidebar-overlay.show { display: block; }
+
+        .main { flex: 1; margin-right: 260px; display: flex; flex-direction: column; height: 100vh; transition: margin-right 0.3s ease; overflow: hidden; }
+        .main.expanded { margin-right: 0; }
+
+        .chat-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: #ffffff; border-bottom: 1px solid #eef2f8; z-index: 10; }
+        body.dark-mode .chat-header { background: #1a1f2b; border-bottom-color: #2a3442; }
+        .chat-header h1 { font-size: 1.3rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .hamburger { color: #b0c0d4; }
+
+        .chat-layout { display: flex; flex: 1; overflow: hidden; }
+        .conversation-list { width: 320px; background: #ffffff; border-left: 1px solid #eef2f8; overflow-y: auto; display: flex; flex-direction: column; }
+        body.dark-mode .conversation-list { background: #1a1f2b; border-left-color: #2a3442; }
+        .conv-item { padding: 1rem; border-bottom: 1px solid #f0f4fa; cursor: pointer; transition: background 0.1s; display: flex; gap: 0.8rem; align-items: center; }
+        body.dark-mode .conv-item { border-bottom-color: #2a3442; }
+        .conv-item:hover, .conv-item.active { background: #eef4fe; }
+        body.dark-mode .conv-item:hover, body.dark-mode .conv-item.active { background: #1f2a40; }
+        .conv-avatar { width: 44px; height: 44px; border-radius: 50%; background: #e8f0fe; display: flex; align-items: center; justify-content: center; color: #2a7de1; font-weight: 700; font-size: 1.1rem; }
+        .conv-info { flex: 1; min-width: 0; }
+        .conv-name { font-weight: 600; font-size: 0.9rem; }
+        .conv-last { font-size: 0.8rem; color: #6b7d9c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: #f9fbfe; }
+        body.dark-mode .chat-area { background: #141a26; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; }
+        .msg { max-width: 70%; padding: 0.7rem 1rem; border-radius: 18px; font-size: 0.9rem; line-height: 1.4; position: relative; }
+        .msg.sent { align-self: flex-end; background: #2a7de1; color: white; border-bottom-left-radius: 6px; }
+        .msg.received { align-self: flex-start; background: #ffffff; border: 1px solid #e7edf5; border-bottom-right-radius: 6px; }
+        body.dark-mode .msg.received { background: #2a3442; border-color: #3b465b; }
+        .msg-time { font-size: 0.7rem; margin-top: 0.3rem; opacity: 0.7; text-align: left; }
+        .chat-input-area { display: flex; padding: 1rem; background: #ffffff; border-top: 1px solid #eef2f8; gap: 0.5rem; }
+        body.dark-mode .chat-input-area { background: #1a1f2b; border-top-color: #2a3442; }
+        .chat-input-area input { flex: 1; padding: 0.7rem 1rem; border: 1.5px solid #dfe6f0; border-radius: 30px; font-size: 0.9rem; background: #f9fbfe; outline: none; }
+        body.dark-mode .chat-input-area input { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
+        .chat-input-area button { background: #2a7de1; border: none; color: white; padding: 0.7rem 1.2rem; border-radius: 30px; font-weight: 600; cursor: pointer; }
+
+        .empty-conv { flex: 1; display: flex; align-items: center; justify-content: center; color: #8a9bb5; font-size: 1.1rem; }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 0.85rem; }
+        .btn-primary { background: #2a7de1; color: white; }
+        .btn-primary:hover { background: #1a67c4; }
+        .btn-secondary { background: #eef2f8; color: #1a253a; }
+        body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #ffffff; border-radius: 28px; max-width: 400px; width: 100%; padding: 2rem; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        body.dark-mode .modal { background: #1a1f2b; }
+        .modal h2 { margin-bottom: 1rem; }
+        .modal select { width: 100%; padding: 0.7rem; border-radius: 12px; border: 1px solid #dfe6f0; }
+        .modal .form-actions { display: flex; gap: 0.8rem; margin-top: 1rem; justify-content: flex-end; }
+
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 0.8rem 1.5rem; border-radius: 14px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease; }
+        body.dark-mode .toast { background: #2a3442; color: #eef2f6; }
+        .toast.success { border-right: 4px solid #10B981; }
+        .toast.error { border-right: 4px solid #EF4444; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .hamburger { display: block; }
+            .main { margin-right: 0; }
+            .sidebar { transform: translateX(100%); }
+            .sidebar.open { transform: translateX(0); }
+            .conversation-list { width: 100%; display: none; }
+            .conversation-list.open { display: flex; }
+            .chat-area { display: none; }
+            .chat-area.open { display: flex; }
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+        <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
+        <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
+        <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
+        <a href="students.html"><i class="fas fa-users"></i> الطلاب</a>
+        <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
+        <a href="exams.html"><i class="fas fa-file-alt"></i> الامتحانات</a>
+        <a href="notifications.html"><i class="fas fa-bell"></i> الإشعارات</a>
+        <a href="messages.html" class="active"><i class="fas fa-comments"></i> الرسائل</a>
+        <a href="revenue.html"><i class="fas fa-dollar-sign"></i> الإيرادات</a>
+        <a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a>
+    </nav>
+    <div class="sidebar-footer" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
+</aside>
+
+<div class="main" id="mainContent">
+    <header class="chat-header">
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+            <h1>💬 المحادثات</h1>
+        </div>
+        <button class="btn btn-primary" id="newConvBtn"><i class="fas fa-plus"></i> محادثة جديدة</button>
+    </header>
+    <div class="chat-layout">
+        <div class="conversation-list" id="conversationList"></div>
+        <div class="chat-area" id="chatArea">
+            <div class="empty-conv" id="emptyConv">اختر محادثة لعرض الرسائل</div>
+            <div class="chat-messages" id="chatMessages" style="display:none;"></div>
+            <div class="chat-input-area" id="chatInputArea" style="display:none;">
+                <input type="text" id="messageInput" placeholder="اكتب رسالتك...">
+                <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- مودال محادثة جديدة -->
+<div class="modal-overlay" id="newConvModal">
+    <div class="modal">
+        <h2>بدء محادثة</h2>
+        <select id="studentSelect"><option value="">اختر طالباً...</option></select>
+        <div class="form-actions">
+            <button class="btn btn-secondary" id="cancelNewConv">إلغاء</button>
+            <button class="btn btn-primary" id="startConvBtn">بدء</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, collection, doc, getDoc, addDoc, updateDoc, query, where, orderBy, onSnapshot, Timestamp, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+        authDomain: "zentor-caaf1.firebaseapp.com",
+        projectId: "zentor-caaf1",
+        storageBucket: "zentor-caaf1.firebasestorage.app",
+        messagingSenderId: "681267238383",
+        appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+        measurementId: "G-X80GNJHMS5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let TEACHER_ID = '';
+    let teacherName = '';
+    let allConversations = [];
+    let activeConversationId = null;
+    let unsubscribeMessages = null;
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        TEACHER_ID = user.uid;
+        try {
+            const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+            if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+                return;
+            }
+            const profileSnap = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'profile'));
+            teacherName = profileSnap.exists() ? (profileSnap.data().name || 'المعلم') : 'المعلم';
+        } catch (e) { console.error(e); }
+        document.body.classList.add('auth-ready');
+        loadConversations();
+        loadStudents();
+    });
+
+    const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+    document.querySelectorAll('.sidebar nav a').forEach(link => link.addEventListener('click', () => { if (window.innerWidth <= 768) { sidebar.classList.remove('open'); overlay.classList.remove('show'); } }));
+    document.getElementById('logoutBtn').addEventListener('click', () => { if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html'); });
+
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div'); toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
+        container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+    }
+
+    // تحميل المحادثات باستعلامين منفصلين (senderId / receiverId)
+    function loadConversations() {
+        const q1 = query(collection(db, 'teachers', TEACHER_ID, 'conversations'), where('senderId', '==', TEACHER_ID));
+        const q2 = query(collection(db, 'teachers', TEACHER_ID, 'conversations'), where('receiverId', '==', TEACHER_ID));
+
+        const convMap = new Map();
+        function mergeSnapshot(snapshot) {
+            snapshot.forEach(docSnap => {
+                if (!convMap.has(docSnap.id)) {
+                    convMap.set(docSnap.id, { id: docSnap.id, ...docSnap.data() });
+                }
+            });
+            allConversations = Array.from(convMap.values());
+            allConversations.sort((a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
+            renderConversationList();
+        }
+
+        onSnapshot(q1, mergeSnapshot);
+        onSnapshot(q2, mergeSnapshot);
+    }
+
+    function renderConversationList() {
+        const list = document.getElementById('conversationList');
+        if (allConversations.length === 0) {
+            list.innerHTML = '<div class="empty-state" style="padding:2rem;text-align:center;color:#8a9bb5;">لا توجد محادثات</div>';
+            return;
+        }
+        list.innerHTML = allConversations.map(conv => {
+            const otherName = conv.senderId === TEACHER_ID ? (conv.receiverName || 'طالب') : (conv.senderName || 'معلم');
+            const initial = otherName.charAt(0);
+            const lastMsg = conv.lastMessage || '';
+            return `<div class="conv-item ${conv.id === activeConversationId ? 'active' : ''}" data-id="${conv.id}">
+                <div class="conv-avatar">${initial}</div>
+                <div class="conv-info"><div class="conv-name">${otherName}</div><div class="conv-last">${lastMsg}</div></div>
+            </div>`;
+        }).join('');
+
+        document.querySelectorAll('.conv-item').forEach(item => {
+            item.addEventListener('click', () => openConversation(item.dataset.id));
+        });
+    }
+
+    function openConversation(convId) {
+        activeConversationId = convId;
+        document.getElementById('emptyConv').style.display = 'none';
+        document.getElementById('chatMessages').style.display = 'flex';
+        document.getElementById('chatInputArea').style.display = 'flex';
+        if (unsubscribeMessages) unsubscribeMessages();
+
+        const q = query(collection(db, 'teachers', TEACHER_ID, 'conversations', convId, 'messages'), orderBy('timestamp', 'asc'));
+        unsubscribeMessages = onSnapshot(q, snapshot => {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+            snapshot.forEach(docSnap => {
+                const msg = docSnap.data();
+                const cls = msg.senderId === TEACHER_ID ? 'sent' : 'received';
+                const time = msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '';
+                messagesDiv.innerHTML += `<div class="msg ${cls}"><div>${msg.text || ''}</div><div class="msg-time">${time}</div></div>`;
+            });
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+
+        // تحديث نشط في القائمة
+        document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+        const activeEl = document.querySelector(`.conv-item[data-id="${convId}"]`);
+        if (activeEl) activeEl.classList.add('active');
+
+        // للموبايل
+        if (window.innerWidth <= 768) {
+            document.getElementById('conversationList').classList.remove('open');
+            document.getElementById('chatArea').classList.add('open');
+        }
+    }
+
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if (!text || !activeConversationId) return;
+        try {
+            await addDoc(collection(db, 'teachers', TEACHER_ID, 'conversations', activeConversationId, 'messages'), {
+                senderId: TEACHER_ID,
+                senderName: teacherName,
+                text: text,
+                timestamp: serverTimestamp()
+            });
+            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'conversations', activeConversationId), {
+                lastMessage: text,
+                updatedAt: serverTimestamp()
+            });
+            input.value = '';
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
+    }
+
+    // محادثة جديدة
+    const newConvModal = document.getElementById('newConvModal');
+    document.getElementById('newConvBtn').addEventListener('click', () => newConvModal.classList.add('active'));
+    document.getElementById('cancelNewConv').addEventListener('click', () => newConvModal.classList.remove('active'));
+
+    let studentList = [];
+    async function loadStudents() {
+        const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'students'));
+        const select = document.getElementById('studentSelect');
+        select.innerHTML = '<option value="">اختر طالباً...</option>';
+        studentList = [];
+        snap.forEach(docSnap => {
+            const data = docSnap.data();
+            studentList.push({ id: docSnap.id, name: data.name || 'بدون اسم' });
+            select.innerHTML += `<option value="${docSnap.id}">${data.name || 'بدون اسم'}</option>`;
+        });
+    }
+
+    document.getElementById('startConvBtn').addEventListener('click', async () => {
+        const studentId = document.getElementById('studentSelect').value;
+        if (!studentId) return;
+        // تحقق من وجود محادثة سابقة
+        const existing = allConversations.find(c =>
+            (c.senderId === TEACHER_ID && c.receiverId === studentId) ||
+            (c.receiverId === TEACHER_ID && c.senderId === studentId)
+        );
+        if (existing) {
+            openConversation(existing.id);
+            newConvModal.classList.remove('active');
+            return;
+        }
+        const student = studentList.find(s => s.id === studentId);
+        const studentName = student ? student.name : 'طالب';
+        try {
+            const docRef = await addDoc(collection(db, 'teachers', TEACHER_ID, 'conversations'), {
+                senderId: TEACHER_ID,
+                senderName: teacherName,
+                receiverId: studentId,
+                receiverName: studentName,
+                lastMessage: '',
+                updatedAt: serverTimestamp()
+            });
+            newConvModal.classList.remove('active');
+            openConversation(docRef.id);
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
+    });
+
+    // للموبايل: العودة إلى قائمة المحادثات
+    document.getElementById('emptyConv').addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            document.getElementById('conversationList').classList.add('open');
+            document.getElementById('chatArea').classList.remove('open');
+        }
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(overlayEl => overlayEl.addEventListener('click', (e) => { if (e.target === overlayEl) overlayEl.classList.remove('active'); }));
+</script>
+</body>
+</html>
