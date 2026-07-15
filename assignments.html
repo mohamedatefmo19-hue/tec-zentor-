@@ -116,7 +116,6 @@
         <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
         <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
         <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
-        <a href="lesson-upload.html"><i class="fas fa-upload"></i> رفع درس</a>
         <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
         <a href="students.html"><i class="fas fa-users"></i> الطلاب</a>
         <a href="assignments.html" class="active"><i class="fas fa-clipboard-list"></i> الواجبات</a>
@@ -189,9 +188,7 @@
 <div class="modal-overlay" id="submissionsModal">
     <div class="modal" style="max-width: 600px;">
         <h2>تسليمات الواجب</h2>
-        <div id="submissionsContent">
-            <p style="color:#8a9bb5;">جاري التحميل...</p>
-        </div>
+        <div id="submissionsContent"><p style="color:#8a9bb5;">جاري التحميل...</p></div>
         <div class="form-actions">
             <button class="btn btn-secondary cancel" id="closeSubmissionsBtn">إغلاق</button>
         </div>
@@ -249,22 +246,20 @@
 
     let TEACHER_ID = '';
 
-    // التحقق من المعلم
+    // التحقق من المعلم (باستخدام settings/preferences)
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
+        TEACHER_ID = user.uid;
         try {
-            const teacherSnap = await getDoc(doc(db, 'teachers', user.uid));
-            if (!teacherSnap.exists() || teacherSnap.data().status === 'pending') {
+            const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+            if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
                 await signOut(auth);
                 window.location.href = 'login.html';
                 return;
             }
-            TEACHER_ID = user.uid;
-            document.body.classList.add('auth-ready');
-            listenToAssignments();
-        } catch (e) {
-            showToast('خطأ في التحقق من الصلاحية', 'error');
-        }
+        } catch (e) { console.error('خطأ في التحقق:', e); }
+        document.body.classList.add('auth-ready');
+        listenToAssignments();
     });
 
     // الشريط الجانبي
@@ -324,7 +319,7 @@
         document.querySelectorAll('.view-submissions-btn').forEach(b => b.addEventListener('click', () => openSubmissionsModal(b.dataset.id)));
     }
 
-    // -------------------- إنشاء واجب --------------------
+    // إنشاء واجب
     document.getElementById('createAssignmentBtn').addEventListener('click', () => {
         document.getElementById('assignmentModalTitle').textContent = 'إنشاء واجب';
         document.getElementById('assignmentId').value = '';
@@ -342,7 +337,6 @@
         document.getElementById('assignmentId').value = assignment.id;
         document.getElementById('assignmentTitle').value = assignment.title || '';
         document.getElementById('assignmentDescription').value = assignment.description || '';
-        // تحويل Timestamp إلى قيمة datetime-local
         const deadlineDate = assignment.deadline ? new Date(assignment.deadline.seconds * 1000) : new Date();
         document.getElementById('assignmentDeadline').value = deadlineDate.toISOString().slice(0,16);
         document.getElementById('assignmentMaxScore').value = assignment.maxScore || 100;
@@ -363,7 +357,6 @@
             maxScore: Number(document.getElementById('assignmentMaxScore').value),
             updatedAt: Timestamp.now()
         };
-
         try {
             if (id) {
                 await updateDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', id), data);
@@ -374,12 +367,10 @@
                 showToast('تم إنشاء الواجب');
             }
             document.getElementById('assignmentModal').classList.remove('active');
-        } catch (err) {
-            showToast('خطأ: ' + err.message, 'error');
-        }
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // -------------------- حذف واجب --------------------
+    // حذف واجب
     const deleteModal = document.getElementById('deleteModal');
     function openDeleteModal(id) {
         currentAssignmentId = id;
@@ -392,15 +383,12 @@
             await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', currentAssignmentId));
             showToast('تم حذف الواجب');
             deleteModal.classList.remove('active');
-        } catch (err) {
-            showToast('خطأ: ' + err.message, 'error');
-        }
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // -------------------- عرض التسليمات --------------------
+    // عرض التسليمات
     const submissionsModal = document.getElementById('submissionsModal');
     const submissionsContent = document.getElementById('submissionsContent');
-
     function openSubmissionsModal(assignmentId) {
         currentAssignmentId = assignmentId;
         submissionsModal.classList.add('active');
@@ -415,21 +403,20 @@
             snapshot.forEach(docSnap => {
                 const sub = docSnap.data();
                 const studentName = sub.studentName || 'غير معروف';
-                const status = sub.grade !== undefined ? 'تم التقييم' : 'قيد الانتظار';
-                const badgeClass = sub.grade !== undefined ? 'badge-success' : 'badge-warning';
+                const hasGrade = sub.grade !== undefined;
+                const status = hasGrade ? 'تم التقييم' : 'قيد الانتظار';
+                const badgeClass = hasGrade ? 'badge-success' : 'badge-warning';
                 html += `<div class="submission-item">
                     <span><strong>${studentName}</strong> - ${sub.submittedAt ? new Date(sub.submittedAt.seconds*1000).toLocaleString('ar-EG') : '—'}</span>
                     <div style="display:flex; align-items:center; gap:0.5rem;">
                         <span class="badge ${badgeClass}">${status}</span>
-                        ${sub.grade !== undefined ? `<span>الدرجة: ${sub.grade}</span>` : ''}
-                        <button class="btn btn-sm btn-primary grade-btn" data-id="${docSnap.id}" data-max="${allAssignments.find(a=>a.id===assignmentId)?.maxScore||100}">${sub.grade !== undefined ? 'تعديل الدرجة' : 'إضافة درجة'}</button>
+                        ${hasGrade ? `<span>الدرجة: ${sub.grade}</span>` : ''}
+                        <button class="btn btn-sm btn-primary grade-btn" data-id="${docSnap.id}" data-max="${allAssignments.find(a=>a.id===assignmentId)?.maxScore||100}">${hasGrade ? 'تعديل الدرجة' : 'إضافة درجة'}</button>
                     </div>
                 </div>`;
             });
             html += '</div>';
             submissionsContent.innerHTML = html;
-
-            // ربط أزرار إضافة الدرجة
             document.querySelectorAll('.grade-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -440,30 +427,25 @@
             });
         });
     }
-
     document.getElementById('closeSubmissionsBtn').addEventListener('click', () => {
         submissionsModal.classList.remove('active');
     });
 
-    // -------------------- مودال الدرجة --------------------
+    // مودال الدرجة
     const gradeModal = document.getElementById('gradeModal');
     const gradeForm = document.getElementById('gradeForm');
-
     function openGradeModal(submissionId, maxScore) {
         document.getElementById('gradeSubmissionId').value = submissionId;
         document.getElementById('gradeScore').max = maxScore;
         document.getElementById('gradeScore').value = '';
         gradeModal.classList.add('active');
     }
-
     document.getElementById('gradeCancelBtn').addEventListener('click', () => gradeModal.classList.remove('active'));
-
     gradeForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submissionId = document.getElementById('gradeSubmissionId').value;
         const score = Number(document.getElementById('gradeScore').value);
         if (!submissionId || !currentAssignmentId) return;
-
         try {
             await updateDoc(doc(db, 'teachers', TEACHER_ID, 'assignments', currentAssignmentId, 'submissions', submissionId), {
                 grade: score,
@@ -471,9 +453,7 @@
             });
             showToast('تم حفظ الدرجة');
             gradeModal.classList.remove('active');
-        } catch (err) {
-            showToast('خطأ: ' + err.message, 'error');
-        }
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
     // إغلاق المودالات بالنقر خارجها
@@ -497,7 +477,7 @@
             ths[3].textContent = lc==='ar'?'التسليمات':'Submissions';
             ths[4].textContent = lc==='ar'?'إجراءات':'Actions';
         }
-        if (lc === 'ar') { document.documentElement.dir = 'rtl'; } else { document.documentElement.dir = 'ltr'; }
+        document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
     }
     langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
     darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; });
