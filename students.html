@@ -109,7 +109,6 @@
     </style>
 </head>
 <body>
-
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
@@ -117,7 +116,6 @@
         <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
         <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
         <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
-        <a href="lesson-upload.html"><i class="fas fa-upload"></i> رفع درس</a>
         <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
         <a href="students.html" class="active"><i class="fas fa-users"></i> الطلاب</a>
         <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
@@ -218,10 +216,9 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script type="module">
-    // استيرادات Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, getDoc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
@@ -239,54 +236,40 @@
 
     let TEACHER_ID = '';
 
-    // -------------------- التحقق من المعلم (الإصدار الصحيح) --------------------
+    // التحقق من المعلم بنفس طريقة dashboard.html
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             window.location.href = 'login.html';
             return;
         }
-
+        TEACHER_ID = user.uid;
         try {
-            // جلب وثيقة المعلم باستخدام getDoc
-            const teacherDocRef = doc(db, 'teachers', user.uid);
-            const teacherSnap = await getDoc(teacherDocRef);
-
-            if (!teacherSnap.exists() || teacherSnap.data().status === 'pending') {
-                // المعلم غير موجود أو حالته معلقة → تسجيل الخروج وإعادة التوجيه
+            const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+            if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
                 await signOut(auth);
                 window.location.href = 'login.html';
                 return;
             }
-
-            // المعلم شرعي
-            TEACHER_ID = user.uid;
-            document.body.classList.add('auth-ready');
-            // بدء الاستماع للطلاب
-            listenToStudents();
-
-        } catch (error) {
-            console.error('خطأ في التحقق من المعلم:', error);
-            showToast('حدث خطأ في التحقق من الصلاحية', 'error');
-            // لا نعيد التوجيه تلقائياً، ربما مشكلة اتصال
+        } catch (e) {
+            console.error('خطأ في التحقق:', e);
         }
+        document.body.classList.add('auth-ready');
+        listenToStudents();
     });
 
-    // -------------------- الشريط الجانبي --------------------
+    // الشريط الجانبي
     const sidebar = document.getElementById('sidebar'),
           overlay = document.getElementById('sidebarOverlay');
     document.getElementById('hamburgerBtn').addEventListener('click', () => {
-        sidebar.classList.add('open');
-        overlay.classList.add('show');
+        sidebar.classList.add('open'); overlay.classList.add('show');
     });
     overlay.addEventListener('click', () => {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('show');
+        sidebar.classList.remove('open'); overlay.classList.remove('show');
     });
     document.querySelectorAll('.sidebar nav a').forEach(link =>
         link.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('show');
+                sidebar.classList.remove('open'); overlay.classList.remove('show');
             }
         })
     );
@@ -295,7 +278,7 @@
             signOut(auth).then(() => window.location.href = 'login.html');
     });
 
-    // -------------------- التوست --------------------
+    // توست
     function showToast(msg, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -305,7 +288,7 @@
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // -------------------- جدول الطلاب --------------------
+    // بيانات الطلاب
     const tableBody = document.getElementById('studentsTableBody');
     const searchInput = document.getElementById('searchInput');
     let allStudents = [];
@@ -318,9 +301,7 @@
         );
         onSnapshot(q, snapshot => {
             allStudents = [];
-            snapshot.forEach(docSnap => {
-                allStudents.push({ id: docSnap.id, ...docSnap.data() });
-            });
+            snapshot.forEach(docSnap => allStudents.push({ id: docSnap.id, ...docSnap.data() }));
             renderTable(allStudents);
         }, error => {
             console.error('فشل تحميل الطلاب:', error);
@@ -330,20 +311,14 @@
 
     function renderTable(students) {
         if (!students.length) {
-            tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users-slash"></i><p>لا يوجد طلاب بعد</p></div></td></tr>`;
+            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users-slash"></i><p>لا يوجد طلاب بعد</p></div></td></tr>';
             return;
         }
-
         tableBody.innerHTML = students.map(s => {
             const statusBadge = s.blocked ? 'badge-danger' : 'badge-success';
             const statusText = s.blocked ? 'محظور' : 'نشط';
-            const lastActive = s.lastActive
-                ? new Date(s.lastActive.seconds * 1000).toLocaleDateString('ar-EG')
-                : '—';
-            const registered = s.registeredAt
-                ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG')
-                : '—';
-
+            const lastActive = s.lastActive ? new Date(s.lastActive.seconds * 1000).toLocaleDateString('ar-EG') : '—';
+            const registered = s.registeredAt ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG') : '—';
             return `<tr>
                 <td><strong>${s.name || '—'}</strong></td>
                 <td>${s.email || '—'}</td>
@@ -360,66 +335,43 @@
             </tr>`;
         }).join('');
 
-        // ربط الأحداث
-        document.querySelectorAll('.details-btn').forEach(b =>
-            b.addEventListener('click', () => openDetails(b.dataset.id))
-        );
-        document.querySelectorAll('.block-btn').forEach(b =>
-            b.addEventListener('click', () =>
-                openBlockModal(b.dataset.id, b.dataset.blocked === 'true')
-            )
-        );
-        document.querySelectorAll('.delete-btn').forEach(b =>
-            b.addEventListener('click', () => openDeleteModal(b.dataset.id))
-        );
+        document.querySelectorAll('.details-btn').forEach(b => b.addEventListener('click', () => openDetails(b.dataset.id)));
+        document.querySelectorAll('.block-btn').forEach(b => b.addEventListener('click', () => openBlockModal(b.dataset.id, b.dataset.blocked === 'true')));
+        document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id)));
     }
 
-    // البحث
     searchInput.addEventListener('input', () => {
         const term = searchInput.value.toLowerCase();
-        const filtered = allStudents.filter(
-            s =>
-                (s.name || '').toLowerCase().includes(term) ||
-                (s.email || '').toLowerCase().includes(term)
-        );
-        renderTable(filtered);
+        renderTable(allStudents.filter(s => (s.name||'').toLowerCase().includes(term) || (s.email||'').toLowerCase().includes(term)));
     });
 
-    // -------------------- تفاصيل الطالب --------------------
+    // تفاصيل الطالب
     function openDetails(id) {
         const student = allStudents.find(s => s.id === id);
         if (!student) return;
-
         document.getElementById('detEmail').textContent = student.email || '—';
         document.getElementById('detStatus').textContent = student.blocked ? 'محظور' : 'نشط';
-        document.getElementById('detJoined').textContent = student.registeredAt
-            ? new Date(student.registeredAt.seconds * 1000).toLocaleString('ar-EG')
-            : '—';
-        document.getElementById('detLastActive').textContent = student.lastActive
-            ? new Date(student.lastActive.seconds * 1000).toLocaleString('ar-EG')
-            : '—';
+        document.getElementById('detJoined').textContent = student.registeredAt ? new Date(student.registeredAt.seconds * 1000).toLocaleString('ar-EG') : '—';
+        document.getElementById('detLastActive').textContent = student.lastActive ? new Date(student.lastActive.seconds * 1000).toLocaleString('ar-EG') : '—';
         document.getElementById('detailsStudentName').textContent = student.name || 'تفاصيل الطالب';
         document.getElementById('detailsModal').classList.add('active');
     }
-
     document.getElementById('closeDetailsBtn').addEventListener('click', () => {
         document.getElementById('detailsModal').classList.remove('active');
     });
 
-    // -------------------- حظر / إلغاء حظر --------------------
+    // حظر / إلغاء حظر
     const blockModal = document.getElementById('blockModal');
     const blockModalTitle = document.getElementById('blockModalTitle');
     const blockModalMsg = document.getElementById('blockModalMsg');
     const blockConfirmBtn = document.getElementById('blockConfirmBtn');
-    let blockAction = null; // 'block' أو 'unblock'
+    let blockAction = null;
 
     function openBlockModal(id, currentlyBlocked) {
         currentStudentId = id;
         blockAction = currentlyBlocked ? 'unblock' : 'block';
         blockModalTitle.textContent = currentlyBlocked ? 'إلغاء الحظر' : 'حظر الطالب';
-        blockModalMsg.textContent = currentlyBlocked
-            ? 'هل تريد إلغاء حظر هذا الطالب؟'
-            : 'هل تريد حظر هذا الطالب؟';
+        blockModalMsg.textContent = currentlyBlocked ? 'هل تريد إلغاء حظر هذا الطالب؟' : 'هل تريد حظر هذا الطالب؟';
         blockModal.classList.add('active');
     }
 
@@ -427,59 +379,36 @@
         if (!currentStudentId || !blockAction) return;
         const newBlocked = blockAction === 'block';
         try {
-            await updateDoc(
-                doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId),
-                { blocked: newBlocked }
-            );
+            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId), { blocked: newBlocked });
             showToast(newBlocked ? 'تم حظر الطالب' : 'تم إلغاء الحظر');
             blockModal.classList.remove('active');
-        } catch (err) {
-            showToast('خطأ: ' + err.message, 'error');
-        }
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
+    document.getElementById('blockCancelBtn').addEventListener('click', () => blockModal.classList.remove('active'));
 
-    document.getElementById('blockCancelBtn').addEventListener('click', () => {
-        blockModal.classList.remove('active');
-    });
-
-    // -------------------- حذف طالب --------------------
+    // حذف طالب
     const deleteModal = document.getElementById('deleteModal');
-
     function openDeleteModal(id) {
         currentStudentId = id;
         deleteModal.classList.add('active');
     }
-
-    document.getElementById('deleteCancelBtn').addEventListener('click', () => {
-        deleteModal.classList.remove('active');
-    });
-
+    document.getElementById('deleteCancelBtn').addEventListener('click', () => deleteModal.classList.remove('active'));
     document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
         if (!currentStudentId) return;
         try {
-            await deleteDoc(
-                doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId)
-            );
+            await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId));
             showToast('تم حذف الطالب');
             deleteModal.classList.remove('active');
-        } catch (err) {
-            showToast('خطأ: ' + err.message, 'error');
-        }
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // -------------------- تصدير CSV --------------------
+    // تصدير CSV
     document.getElementById('exportCsvBtn').addEventListener('click', () => {
-        if (!allStudents.length) {
-            showToast('لا يوجد بيانات للتصدير', 'error');
-            return;
-        }
+        if (!allStudents.length) { showToast('لا يوجد بيانات', 'error'); return; }
         const headers = ['الاسم', 'البريد الإلكتروني', 'تاريخ التسجيل', 'الحالة'];
         const rows = allStudents.map(s => [
-            s.name || '',
-            s.email || '',
-            s.registeredAt
-                ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG')
-                : '',
+            s.name || '', s.email || '',
+            s.registeredAt ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG') : '',
             s.blocked ? 'محظور' : 'نشط'
         ]);
         const csvContent = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
@@ -491,53 +420,40 @@
         showToast('تم التصدير بنجاح');
     });
 
-    // -------------------- إغلاق المودالات بالنقر خارجها --------------------
+    // إغلاق المودالات
     document.querySelectorAll('.modal-overlay').forEach(overlayEl => {
         overlayEl.addEventListener('click', (e) => {
             if (e.target === overlayEl) overlayEl.classList.remove('active');
         });
     });
 
-    // -------------------- لغة ووضع ليلي --------------------
+    // لغة ووضع ليلي
     let lang = 'ar';
-    const langToggle = document.getElementById('langToggle');
-    const darkToggle = document.getElementById('darkToggle');
-    const langLabel = document.getElementById('langLabel');
-
+    const langToggle = document.getElementById('langToggle'),
+          darkToggle = document.getElementById('darkToggle'),
+          langLabel = document.getElementById('langLabel');
     function applyLanguage(lc) {
-        document.querySelector('.navbar h1').textContent =
-            lc === 'ar' ? '👥 إدارة الطلاب' : '👥 Students Management';
-        document.getElementById('searchInput').placeholder =
-            lc === 'ar' ? 'ابحث عن طالب...' : 'Search students...';
-        document.getElementById('exportCsvBtn').innerHTML =
-            `<i class="fas fa-download"></i> ${lc === 'ar' ? 'تصدير CSV' : 'Export CSV'}`;
-
+        document.querySelector('.navbar h1').textContent = lc==='ar'?'👥 إدارة الطلاب':'👥 Students';
+        document.getElementById('searchInput').placeholder = lc==='ar'?'ابحث عن طالب...':'Search...';
+        document.getElementById('exportCsvBtn').innerHTML = `<i class="fas fa-download"></i> ${lc==='ar'?'تصدير CSV':'Export CSV'}`;
         const ths = document.querySelectorAll('th');
         if (ths.length >= 6) {
-            ths[0].textContent = lc === 'ar' ? 'الطالب' : 'Student';
-            ths[1].textContent = lc === 'ar' ? 'البريد الإلكتروني' : 'Email';
-            ths[2].textContent = lc === 'ar' ? 'تاريخ التسجيل' : 'Registered';
-            ths[3].textContent = lc === 'ar' ? 'الحالة' : 'Status';
-            ths[4].textContent = lc === 'ar' ? 'آخر نشاط' : 'Last Active';
-            ths[5].textContent = lc === 'ar' ? 'إجراءات' : 'Actions';
+            ths[0].textContent = lc==='ar'?'الطالب':'Student';
+            ths[1].textContent = lc==='ar'?'البريد الإلكتروني':'Email';
+            ths[2].textContent = lc==='ar'?'تاريخ التسجيل':'Registered';
+            ths[3].textContent = lc==='ar'?'الحالة':'Status';
+            ths[4].textContent = lc==='ar'?'آخر نشاط':'Last Active';
+            ths[5].textContent = lc==='ar'?'إجراءات':'Actions';
         }
-
         document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
     }
-
     langToggle.addEventListener('click', () => {
-        lang = lang === 'ar' ? 'en' : 'ar';
-        langLabel.textContent = lang.toUpperCase();
-        applyLanguage(lang);
+        lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang);
     });
-
     darkToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
-        darkToggle.innerHTML = document.body.classList.contains('dark-mode')
-            ? '<i class="fas fa-sun"></i>'
-            : '<i class="fas fa-moon"></i>';
+        darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';
     });
-
     applyLanguage('ar');
 </script>
 </body>
