@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Zentor · الملف الشخصي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #0b1e33; display: flex; min-height: 100vh; }
+        body.dark-mode { background: #0b0e14; color: #eef2f6; }
+
+        .sidebar { width: 260px; background: #ffffff; border-left: 1px solid #e7edf5; padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed; top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0); }
+        body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
+        .sidebar.closed { transform: translateX(100%); }
+        .sidebar-logo { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem; }
+        .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
+        body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
+        .sidebar nav { flex: 1; }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px; color: #4a5b7a; text-decoration: none; font-weight: 500; transition: 0.15s; margin-bottom: 0.3rem; }
+        .sidebar nav a i { width: 1.4rem; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: #eef4fe; color: #1a67c4; }
+        body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-footer { border-top: 1px solid #e7edf5; padding-top: 1.2rem; margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #6b7d9c; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; }
+        .sidebar-footer:hover { color: #e74c3c; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+        .sidebar-overlay.show { display: block; }
+
+        .main { flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease; overflow-x: hidden; width: 100%; }
+        .main.expanded { margin-right: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        .navbar h1 { font-size: 1.7rem; font-weight: 700; }
+        .navbar-actions { display: flex; align-items: center; gap: 1.2rem; }
+        .navbar-actions button { background: none; border: none; font-size: 1.2rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .navbar-actions button { color: #b0c0d4; }
+        .navbar-actions button:hover { color: #2a7de1; }
+        .lang-dark { display: flex; gap: 0.6rem; }
+        .lang-dark button { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; }
+        .lang-dark .dark-toggle { color: #6b7d9c; }
+        body.dark-mode .lang-dark .dark-toggle { color: #b0c0d4; }
+        .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .hamburger { color: #b0c0d4; }
+
+        .profile-wrapper { max-width: 700px; margin: 0 auto; }
+        .profile-card { background: #ffffff; border-radius: 24px; padding: 2rem; border: 1px solid #eef2f8; box-shadow: 0 10px 30px rgba(0,0,0,0.03); text-align: center; }
+        body.dark-mode .profile-card { background: #1a1f2b; border-color: #2a3442; }
+        .avatar-section { position: relative; display: inline-block; margin-bottom: 1rem; }
+        .avatar-section img { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid #eef2f8; }
+        body.dark-mode .avatar-section img { border-color: #2a3442; }
+        .avatar-overlay { position: absolute; bottom: 5px; right: 5px; background: #2a7de1; color: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .profile-name { font-size: 1.6rem; font-weight: 700; margin: 0.5rem 0 0.2rem; }
+        .profile-email { color: #6b7d9c; margin-bottom: 0.8rem; }
+        .specialties-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.4rem; margin: 0.8rem 0; }
+        .specialty-tag { background: #eef2f8; color: #1a253a; padding: 0.3rem 1rem; border-radius: 30px; font-size: 0.8rem; font-weight: 500; }
+        body.dark-mode .specialty-tag { background: #2a3442; color: #eef2f6; }
+        .bio-text { color: #4a5b7a; font-size: 0.95rem; line-height: 1.6; margin: 1rem 0; }
+        body.dark-mode .bio-text { color: #b0c0d4; }
+
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.5rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; font-size: 0.9rem; transition: 0.15s; margin: 0.3rem; }
+        .btn-primary { background: #2a7de1; color: white; }
+        .btn-primary:hover { background: #1a67c4; }
+        .btn-secondary { background: #eef2f8; color: #1a253a; }
+        body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #ffffff; border-radius: 28px; max-width: 420px; width: 100%; padding: 2rem; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        body.dark-mode .modal { background: #1a1f2b; }
+        .modal h2 { margin-bottom: 1.2rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .form-group input, .form-group textarea { width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #dfe6f0; border-radius: 14px; font-size: 0.95rem; background: #f9fbfe; }
+        body.dark-mode .form-group input, body.dark-mode .form-group textarea { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
+        .form-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .form-actions button { padding: 0.6rem 1.8rem; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; }
+        .form-actions .cancel { background: #eef2f8; color: #1a253a; }
+        .form-actions .submit { background: #2a7de1; color: white; }
+
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 0.8rem 1.5rem; border-radius: 14px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease; }
+        body.dark-mode .toast { background: #2a3442; color: #eef2f6; }
+        .toast.success { border-right: 4px solid #10B981; }
+        .toast.error { border-right: 4px solid #EF4444; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) { .hamburger { display: block; } .main { margin-right: 0; } .sidebar { transform: translateX(100%); } .sidebar.closed { transform: translateX(100%); } .sidebar.open { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+        <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
+        <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
+        <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
+        <a href="students.html"><i class="fas fa-users"></i> الطلاب</a>
+        <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
+        <a href="exams.html"><i class="fas fa-file-alt"></i> الامتحانات</a>
+        <a href="notifications.html"><i class="fas fa-bell"></i> الإشعارات</a>
+        <a href="messages.html"><i class="fas fa-comments"></i> الرسائل</a>
+        <a href="revenue.html"><i class="fas fa-dollar-sign"></i> الإيرادات</a>
+        <a href="subscription-codes.html"><i class="fas fa-key"></i> أكواد الاشتراك</a>
+        <a href="analytics.html"><i class="fas fa-chart-line"></i> التحليلات</a>
+        <a href="profile.html" class="active"><i class="fas fa-id-card"></i> الملف الشخصي</a>
+        <a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a>
+    </nav>
+    <div class="sidebar-footer" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
+</aside>
+
+<div class="main" id="mainContent">
+    <header class="navbar">
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+            <h1>👤 الملف الشخصي</h1>
+        </div>
+        <div class="navbar-actions">
+            <div class="lang-dark">
+                <button id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
+                <button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <div class="profile-wrapper">
+        <div class="profile-card">
+            <div class="avatar-section">
+                <img id="profileAvatar" src="https://ui-avatars.com/api/?name=Teacher&background=2a7de1&color=fff&size=128" alt="صورة المعلم">
+                <label for="avatarInput" class="avatar-overlay"><i class="fas fa-camera"></i></label>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+            </div>
+            <h2 class="profile-name" id="profileNameDisplay">---</h2>
+            <p class="profile-email" id="profileEmailDisplay">---</p>
+            <div class="specialties-container" id="specialtiesDisplay"></div>
+            <p class="bio-text" id="profileBioDisplay"></p>
+            <button class="btn btn-primary" id="editProfileBtn"><i class="fas fa-pen"></i> تعديل الملف</button>
+            <button class="btn btn-secondary" id="changePasswordBtn"><i class="fas fa-key"></i> تغيير كلمة المرور</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تعديل الملف الشخصي -->
+<div class="modal-overlay" id="editProfileModal">
+    <div class="modal">
+        <h2>تعديل الملف الشخصي</h2>
+        <form id="editProfileForm">
+            <div class="form-group"><label>الاسم</label><input type="text" id="editName" required></div>
+            <div class="form-group"><label>نبذة عني</label><textarea id="editBio" rows="3"></textarea></div>
+            <div class="form-actions">
+                <button type="button" class="cancel" id="cancelEditBtn">إلغاء</button>
+                <button type="submit" class="submit">حفظ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- مودال تغيير كلمة المرور -->
+<div class="modal-overlay" id="passwordModal">
+    <div class="modal">
+        <h2>تغيير كلمة المرور</h2>
+        <form id="passwordForm">
+            <div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="currentPassword" required></div>
+            <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="newPassword" required minlength="6"></div>
+            <div class="form-group"><label>تأكيد كلمة المرور</label><input type="password" id="confirmPassword" required minlength="6"></div>
+            <div class="form-actions">
+                <button type="button" class="cancel" id="cancelPasswordBtn">إلغاء</button>
+                <button type="submit" class="submit">تغيير</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+        authDomain: "zentor-caaf1.firebaseapp.com",
+        projectId: "zentor-caaf1",
+        storageBucket: "zentor-caaf1.firebasestorage.app",
+        messagingSenderId: "681267238383",
+        appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+        measurementId: "G-X80GNJHMS5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let TEACHER_ID = '';
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        TEACHER_ID = user.uid;
+        try {
+            const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+            if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+                return;
+            }
+        } catch (e) { console.error(e); }
+        document.body.classList.add('auth-ready');
+        loadProfile();
+    });
+
+    const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+    document.getElementById('logoutBtn').addEventListener('click', () => { if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html'); });
+
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div'); toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
+        container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+    }
+
+    async function loadProfile() {
+        const snap = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'profile'));
+        if (snap.exists()) {
+            const data = snap.data();
+            document.getElementById('profileNameDisplay').textContent = data.name || '—';
+            document.getElementById('profileEmailDisplay').textContent = data.email || auth.currentUser?.email || '—';
+            document.getElementById('profileBioDisplay').textContent = data.bio || 'لا توجد نبذة.';
+            if (data.photoURL) document.getElementById('profileAvatar').src = data.photoURL;
+            const specialties = data.specialties || [];
+            const container = document.getElementById('specialtiesDisplay');
+            container.innerHTML = specialties.map(s => `<span class="specialty-tag">${s}</span>`).join('');
+            // تخزين القيم في المودال
+            document.getElementById('editName').value = data.name || '';
+            document.getElementById('editBio').value = data.bio || '';
+        }
+    }
+
+    // رفع صورة
+    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'ml_default');
+        try {
+            const res = await fetch('https://api.cloudinary.com/v1_1/deaevfmvm/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.secure_url) {
+                document.getElementById('profileAvatar').src = data.secure_url;
+                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'profile'), { photoURL: data.secure_url, updatedAt: serverTimestamp() });
+                showToast('تم تحديث الصورة');
+            }
+        } catch (err) { showToast('فشل رفع الصورة', 'error'); }
+    });
+
+    // تعديل الملف
+    document.getElementById('editProfileBtn').addEventListener('click', () => {
+        document.getElementById('editProfileModal').classList.add('active');
+    });
+    document.getElementById('cancelEditBtn').addEventListener('click', () => {
+        document.getElementById('editProfileModal').classList.remove('active');
+    });
+    document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('editName').value.trim();
+        const bio = document.getElementById('editBio').value.trim();
+        try {
+            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'profile'), { name, bio, updatedAt: serverTimestamp() });
+            document.getElementById('profileNameDisplay').textContent = name;
+            document.getElementById('profileBioDisplay').textContent = bio || 'لا توجد نبذة.';
+            document.getElementById('editProfileModal').classList.remove('active');
+            showToast('تم تحديث الملف الشخصي');
+        } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
+    });
+
+    // تغيير كلمة المرور
+    document.getElementById('changePasswordBtn').addEventListener('click', () => {
+        document.getElementById('passwordModal').classList.add('active');
+    });
+    document.getElementById('cancelPasswordBtn').addEventListener('click', () => {
+        document.getElementById('passwordModal').classList.remove('active');
+    });
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const current = document.getElementById('currentPassword').value;
+        const newPass = document.getElementById('newPassword').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        if (newPass !== confirm) { showToast('كلمتا المرور غير متطابقتين', 'error'); return; }
+        const user = auth.currentUser;
+        if (!user) return;
+        const credential = EmailAuthProvider.credential(user.email, current);
+        try {
+            await reauthenticateWithCredential(user, credential);
+            await updatePassword(user, newPass);
+            showToast('تم تغيير كلمة المرور بنجاح');
+            document.getElementById('passwordModal').classList.remove('active');
+            document.getElementById('passwordForm').reset();
+        } catch (err) {
+            showToast(err.code === 'auth/wrong-password' ? 'كلمة المرور الحالية غير صحيحة' : 'خطأ: ' + err.message, 'error');
+        }
+    });
+
+    // إغلاق المودالات
+    document.querySelectorAll('.modal-overlay').forEach(overlayEl => {
+        overlayEl.addEventListener('click', (e) => { if (e.target === overlayEl) overlayEl.classList.remove('active'); });
+    });
+
+    // لغة ووضع ليلي
+    let lang = 'ar';
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
+    function applyLanguage(lc) {
+        document.querySelector('.navbar h1').textContent = lc==='ar'?'👤 الملف الشخصي':'👤 Profile';
+        document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
+    }
+    langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
+    darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; });
+    applyLanguage('ar');
+</script>
+</body>
+</html>
