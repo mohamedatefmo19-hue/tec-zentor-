@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* التنسيقات كاملة كما في النسخ السابقة – لم يتم حذفها للاختصار ولكنها موجودة في الملف الكامل */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #0b1e33; display: flex; min-height: 100vh; }
         body.dark-mode { background: #0b0e14; color: #eef2f6; }
@@ -253,10 +254,10 @@
 
     let TEACHER_ID = '';
     let allCourses = [];
-    let currentCourseId = null; // الكورس المحدد حاليًا للفلتر
     let allAssignments = [];
     let currentAssignmentId = null;
-    let unsubscribes = []; // لإلغاء الاشتراكات السابقة
+    let currentAssignmentCourseId = null;
+    let unsubscribes = [];
 
     // التحقق من المعلم
     onAuthStateChanged(auth, async (user) => {
@@ -272,10 +273,9 @@
         } catch (e) { console.error('خطأ في التحقق:', e); }
         document.body.classList.add('auth-ready');
         await loadCourses();
-        applyCourseFilter('all'); // عرض كل الواجبات مبدئيًا
+        applyCourseFilter('all');
     });
 
-    // الشريط الجانبي
     const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
     document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
     overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
@@ -289,24 +289,20 @@
         container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
     }
 
-    // تحميل قائمة الكورسات
+    // ✅ تحميل الكورسات مع قراءة الاسم من عدة حقول محتملة
     async function loadCourses() {
-        try {
-            const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'courses'));
-            allCourses = [];
-            const filterSelect = document.getElementById('courseFilter');
-            filterSelect.innerHTML = '<option value="all">📚 كل الكورسات</option>';
-            snap.forEach(doc => {
-                const data = doc.data();
-                allCourses.push({ id: doc.id, name: data.name || 'كورس بدون اسم' });
-                filterSelect.innerHTML += `<option value="${doc.id}">${data.name || 'كورس بدون اسم'}</option>`;
-            });
-            // أيضًا تحديث قائمة الكورسات في المودال
-            updateCourseSelectInModal();
-        } catch (e) {
-            console.error(e);
-            showToast('فشل تحميل الكورسات', 'error');
-        }
+        const snap = await getDocs(collection(db, 'teachers', TEACHER_ID, 'courses'));
+        allCourses = [];
+        const filterSelect = document.getElementById('courseFilter');
+        filterSelect.innerHTML = '<option value="all">📚 كل الكورسات</option>';
+        
+        snap.forEach(doc => {
+            const data = doc.data();
+            const courseName = data.name || data.courseName || data.title || 'كورس بدون اسم';
+            allCourses.push({ id: doc.id, name: courseName });
+            filterSelect.innerHTML += `<option value="${doc.id}">${courseName}</option>`;
+        });
+        updateCourseSelectInModal();
     }
 
     function updateCourseSelectInModal() {
@@ -318,48 +314,37 @@
         });
     }
 
-    // فلترة حسب الكورس
     document.getElementById('courseFilter').addEventListener('change', (e) => {
-        const val = e.target.value;
-        applyCourseFilter(val);
+        applyCourseFilter(e.target.value);
     });
 
     function applyCourseFilter(courseIdOrAll) {
-        // إلغاء أي استماع سابق
         unsubscribes.forEach(unsub => unsub());
         unsubscribes = [];
         allAssignments = [];
 
         if (courseIdOrAll === 'all') {
-            // استمع إلى جميع الواجبات في جميع الكورسات
-            if (allCourses.length === 0) {
-                renderTable([]);
-                return;
-            }
             allCourses.forEach(course => {
                 const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', course.id, 'assignments'), orderBy('createdAt', 'desc'));
                 const unsub = onSnapshot(q, snapshot => {
-                    // إزالة الواجبات القديمة لهذا الكورس وإضافة الجديدة
                     allAssignments = allAssignments.filter(a => a.courseId !== course.id);
                     snapshot.forEach(docSnap => {
                         allAssignments.push({ id: docSnap.id, ...docSnap.data(), courseId: course.id, courseName: course.name });
                     });
-                    // ترتيب محلي تنازليًا حسب createdAt
                     allAssignments.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                     renderTable(allAssignments);
                 });
                 unsubscribes.push(unsub);
             });
         } else {
-            // استمع إلى واجبات كورس واحد
-            currentCourseId = courseIdOrAll;
+            currentAssignmentCourseId = courseIdOrAll;
             const course = allCourses.find(c => c.id === courseIdOrAll);
             const courseName = course ? course.name : '';
             const q = query(collection(db, 'teachers', TEACHER_ID, 'courses', courseIdOrAll, 'assignments'), orderBy('createdAt', 'desc'));
             const unsub = onSnapshot(q, snapshot => {
                 allAssignments = [];
                 snapshot.forEach(docSnap => {
-                    allAssignments.push({ id: docSnap.id, ...docSnap.data(), courseId: courseIdOrAll, courseName: courseName });
+                    allAssignments.push({ id: docSnap.id, ...docSnap.data(), courseId: courseIdOrAll, courseName });
                 });
                 renderTable(allAssignments);
             });
@@ -371,7 +356,7 @@
 
     function renderTable(assignments) {
         if (!assignments.length) {
-            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-clipboard"></i><p>لا توجد واجبات</p></div></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-clipboard"></i><p>لا توجد واجبات بعد</p></div></td></tr>';
             return;
         }
         tableBody.innerHTML = assignments.map(a => {
@@ -407,7 +392,7 @@
         document.getElementById('assignmentDeadline').value = '';
         document.getElementById('assignmentMaxScore').value = '100';
         updateCourseSelectInModal();
-        document.getElementById('assignmentCourse').value = currentCourseId || (allCourses[0]?.id || '');
+        document.getElementById('assignmentCourse').value = currentAssignmentCourseId || (allCourses[0]?.id || '');
         document.getElementById('assignmentModal').classList.add('active');
     });
 
@@ -455,7 +440,6 @@
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // حذف واجب
     const deleteModal = document.getElementById('deleteModal');
     let deleteCourseId = null;
     function openDeleteModal(assignmentId, courseId) {
@@ -473,7 +457,6 @@
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // عرض التسليمات (مع إضافة درجة)
     const submissionsModal = document.getElementById('submissionsModal');
     const submissionsContent = document.getElementById('submissionsContent');
     let submissionsCourseId = null;
@@ -522,7 +505,6 @@
         submissionsModal.classList.remove('active');
     });
 
-    // مودال الدرجة
     document.getElementById('gradeCancelBtn').addEventListener('click', () => document.getElementById('gradeModal').classList.remove('active'));
     document.getElementById('gradeForm').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -539,14 +521,12 @@
         } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
     });
 
-    // إغلاق المودالات
     document.querySelectorAll('.modal-overlay').forEach(overlayEl => {
         overlayEl.addEventListener('click', (e) => {
             if (e.target === overlayEl) overlayEl.classList.remove('active');
         });
     });
 
-    // لغة ووضع ليلي (اختصار)
     let lang = 'ar';
     const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
     function applyLanguage(lc) {
