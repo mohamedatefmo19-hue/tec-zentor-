@@ -1,260 +1,1053 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
-  <title>Zentor · دخول المعلم</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f4f7fc;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      transition: background 0.2s, color 0.2s;
-    }
-    body.dark-mode { background: #0b0e14; color: #eef2f6; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Zentor · تسجيل دخول المعلم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .auth-card {
-      background: #ffffff;
-      max-width: 440px;
-      width: 100%;
-      padding: 2.5rem 2rem 2.2rem;
-      border-radius: 2rem;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
-      transition: background 0.2s, box-shadow 0.2s;
-    }
-    body.dark-mode .auth-card { background: #1a1f2b; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e8f0fe 0%, #f4f7fc 50%, #eef2f8 100%);
+            color: #0b1e33;
+            display: flex;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
 
-    .logo-area { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; }
-    .logo-icon {
-      font-size: 2rem; color: #2a7de1; background: #e8f0fe;
-      width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px;
-    }
-    body.dark-mode .logo-icon { background: #2a3a5a; color: #6b9ef0; }
-    .logo-text { font-weight: 700; font-size: 1.6rem; letter-spacing: -0.5px; color: #0b1e33; }
-    body.dark-mode .logo-text { color: #eef2f6; }
-    .subhead { font-size: 0.9rem; color: #5e6f8d; margin-top: 0.2rem; font-weight: 500; }
+        body.dark-mode {
+            background: linear-gradient(135deg, #0b0e14 0%, #141a26 50%, #1a1f2b 100%);
+            color: #eef2f6;
+        }
 
-    .form-group { margin-bottom: 1.4rem; position: relative; }
-    .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.4rem; color: #1f2a41; }
-    body.dark-mode .form-group label { color: #d0dae8; }
-    .input-wrapper { position: relative; }
-    .input-wrapper i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #8a9bb5; font-size: 1rem; }
-    .input-wrapper input {
-      width: 100%; padding: 0.9rem 1rem 0.9rem 2.8rem; border: 1.5px solid #dfe6f0; border-radius: 14px;
-      font-size: 1rem; background: #f9fbfe; transition: 0.15s; font-weight: 500; color: #1a253a;
-    }
-    body.dark-mode .input-wrapper input { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
-    .input-wrapper input:focus { outline: none; border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.15); }
-    .toggle-pwd {
-      position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
-      background: none; border: none; color: #8a9bb5; cursor: pointer; font-size: 1rem;
-    }
-    .btn-login {
-      width: 100%; padding: 0.9rem; background: #2a7de1; border: none; border-radius: 40px;
-      font-weight: 700; font-size: 1rem; color: white; display: flex; align-items: center; justify-content: center;
-      gap: 0.7rem; cursor: pointer; transition: 0.15s; box-shadow: 0 8px 20px -6px rgba(42,125,225,0.3);
-    }
-    .btn-login:hover { background: #1a67c4; }
-    .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
+        /* شريط جانبي */
+        .sidebar {
+            width: 260px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(231, 237, 245, 0.6);
+            padding: 2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
+        }
 
-    .spinner {
-      display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.25);
-      border-top: 3px solid #fff; border-radius: 50%; animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+        body.dark-mode .sidebar {
+            background: rgba(20, 26, 38, 0.9);
+            border-left-color: rgba(42, 52, 66, 0.6);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+        }
 
-    .message-box {
-      margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 14px; font-weight: 500; font-size: 0.9rem;
-      display: none; align-items: center; gap: 0.6rem;
-    }
-    .message-box.error { display: flex; background: #fde8e8; color: #b3403a; border-left: 5px solid #b3403a; }
-    .message-box.success { display: flex; background: #e3f5e9; color: #1f7840; border-left: 5px solid #1f7840; }
-    body.dark-mode .message-box.error { background: #3a2626; color: #f5b1b1; }
-    body.dark-mode .message-box.success { background: #1e3a2a; color: #8bddb0; }
+        .sidebar.closed {
+            transform: translateX(100%);
+        }
 
-    .footer-lang {
-      display: flex; justify-content: space-between; align-items: center; margin-top: 2rem;
-      font-size: 0.8rem; color: #6b7d9c; border-top: 1px solid #e7edf5; padding-top: 1.5rem;
-    }
-    body.dark-mode .footer-lang { border-top-color: #2f3b4f; color: #9aabbf; }
-    .link-btn { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; text-decoration: none; }
-    .rtl .input-wrapper i { left: auto; right: 1rem; }
-    .rtl .input-wrapper input { padding: 0.9rem 2.8rem 0.9rem 1rem; }
-    .rtl .toggle-pwd { right: auto; left: 1rem; }
-    @media (max-width: 480px) { .auth-card { padding: 1.8rem 1.2rem; } }
-  </style>
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .sidebar-logo i {
+            font-size: 1.8rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, #2a7de1, #1a67c4);
+            padding: 0.6rem;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(42, 125, 225, 0.3);
+        }
+
+        .sidebar-logo span {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #2a7de1, #1a67c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar nav {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
+            color: #4a5b7a;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .sidebar nav a i {
+            width: 1.3rem;
+            font-size: 1rem;
+        }
+
+        .sidebar nav a:hover {
+            background: rgba(42, 125, 225, 0.08);
+            color: #2a7de1;
+            transform: translateX(-4px);
+        }
+
+        .sidebar nav a.active {
+            background: linear-gradient(135deg, rgba(42, 125, 225, 0.12), rgba(26, 103, 196, 0.08));
+            color: #2a7de1;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(42, 125, 225, 0.1);
+        }
+
+        body.dark-mode .sidebar nav a {
+            color: #b0c0d4;
+        }
+
+        body.dark-mode .sidebar nav a:hover {
+            background: rgba(107, 158, 240, 0.1);
+            color: #6b9ef0;
+        }
+
+        body.dark-mode .sidebar nav a.active {
+            background: rgba(107, 158, 240, 0.15);
+            color: #6b9ef0;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid rgba(231, 237, 245, 0.6);
+            padding-top: 1.2rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #6b7d9c;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        body.dark-mode .sidebar-footer {
+            border-top-color: rgba(42, 52, 66, 0.6);
+        }
+
+        /* المحتوى الرئيسي */
+        .main {
+            flex: 1;
+            margin-right: 260px;
+            padding: 1.8rem 2rem 2.5rem;
+            transition: margin-right 0.3s ease;
+            overflow-x: hidden;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .main.expanded {
+            margin-right: 0;
+        }
+
+        /* بطاقة تسجيل الدخول */
+        .login-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 28px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(231, 237, 245, 0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .login-card {
+            background: rgba(26, 31, 43, 0.85);
+            border-color: rgba(42, 52, 66, 0.6);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .login-card:hover {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+        }
+
+        body.dark-mode .login-card:hover {
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: #ffffff;
+            background: linear-gradient(135deg, #2a7de1, #1a67c4);
+            padding: 1rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 24px rgba(42, 125, 225, 0.3);
+        }
+
+        .login-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .login-header p {
+            color: #6b7d9c;
+            font-size: 0.9rem;
+        }
+
+        body.dark-mode .login-header p {
+            color: #8a9bb5;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+            color: #4a5b7a;
+        }
+
+        body.dark-mode .form-group label {
+            color: #b0c0d4;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8a9bb5;
+            font-size: 1rem;
+            transition: color 0.2s ease;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
+            border: 1.5px solid rgba(223, 230, 240, 0.8);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            background: rgba(249, 251, 254, 0.7);
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body.dark-mode .input-wrapper input {
+            background: rgba(37, 45, 61, 0.7);
+            border-color: rgba(59, 70, 91, 0.8);
+            color: #eef2f6;
+        }
+
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: #2a7de1;
+            box-shadow: 0 0 0 4px rgba(42, 125, 225, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        body.dark-mode .input-wrapper input:focus {
+            border-color: #6b9ef0;
+            box-shadow: 0 0 0 4px rgba(107, 158, 240, 0.15);
+            background: rgba(37, 45, 61, 0.9);
+        }
+
+        .input-wrapper input:focus+i {
+            color: #2a7de1;
+        }
+
+        body.dark-mode .input-wrapper input:focus+i {
+            color: #6b9ef0;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2a7de1, #1a67c4);
+            color: white;
+            box-shadow: 0 6px 20px rgba(42, 125, 225, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1a67c4, #1557b0);
+            box-shadow: 0 8px 25px rgba(42, 125, 225, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* أزرار الوضع الليلي واللغة */
+        .toggle-buttons {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .toggle-btn {
+            background: rgba(238, 242, 248, 0.8);
+            border: 1px solid rgba(223, 230, 240, 0.5);
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: #4a5b7a;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body.dark-mode .toggle-btn {
+            background: rgba(42, 52, 66, 0.8);
+            border-color: rgba(59, 70, 91, 0.5);
+            color: #b0c0d4;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(42, 125, 225, 0.1);
+            border-color: #2a7de1;
+            color: #2a7de1;
+        }
+
+        body.dark-mode .toggle-btn:hover {
+            background: rgba(107, 158, 240, 0.1);
+            border-color: #6b9ef0;
+            color: #6b9ef0;
+        }
+
+        /* التحميل */
+        .spinner {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* التوست */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            padding: 0.8rem 1.5rem;
+            border-radius: 14px;
+            background: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        body.dark-mode .toast {
+            background: #2a3442;
+            color: #eef2f6;
+        }
+
+        .toast.success {
+            border-right: 4px solid #10B981;
+        }
+
+        .toast.error {
+            border-right: 4px solid #EF4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* هامبرغر للموبايل */
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1100;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(231, 237, 245, 0.6);
+            border-radius: 12px;
+            padding: 0.6rem;
+            font-size: 1.3rem;
+            color: #4a5b7a;
+            cursor: pointer;
+        }
+
+        body.dark-mode .hamburger {
+            background: rgba(26, 31, 43, 0.8);
+            border-color: rgba(42, 52, 66, 0.6);
+            color: #b0c0d4;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* الروابط في الشريط الجانبي - قائمة منسدلة */
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #8a9bb5;
+            margin: 1rem 0 0.5rem 0;
+            padding: 0 0.5rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: block;
+            }
+            .main {
+                margin-right: 0;
+                padding: 1rem;
+            }
+            .sidebar {
+                transform: translateX(100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .login-card {
+                padding: 1.5rem 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                margin: 0 0.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="auth-card" id="authCard">
-    <div class="logo-area">
-      <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-      <div>
-        <div class="logo-text">Zentor</div>
-        <div class="subhead" id="subhead">بوابة المعلم</div>
-      </div>
-    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <form id="loginForm" autocomplete="off">
-      <div class="form-group">
-        <label for="emailInput">البريد الإلكتروني</label>
-        <div class="input-wrapper"><i class="fas fa-envelope"></i><input type="email" id="emailInput" placeholder="teacher@zentor.com" required></div>
-      </div>
-      <div class="form-group">
-        <label for="passwordInput">كلمة المرور</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input type="password" id="passwordInput" placeholder="••••••••" required>
-          <button type="button" class="toggle-pwd" id="togglePwd"><i class="fas fa-eye"></i></button>
+    <!-- شريط جانبي -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-graduation-cap"></i>
+            <span>Zentor</span>
         </div>
-      </div>
-      <button type="submit" class="btn-login" id="loginBtn">
-        <span id="btnText">تسجيل الدخول</span>
-        <span id="btnSpinner" style="display: none;"><span class="spinner"></span></span>
-      </button>
-    </form>
+        <nav>
+            <a href="dashboard.html"><i class="fas fa-chart-pie"></i> <span data-key="dashboard">لوحة التحكم</span></a>
+            <a href="courses.html"><i class="fas fa-book-open"></i> <span data-key="courses">الكورسات</span></a>
+            <a href="lessons.html"><i class="fas fa-file-alt"></i> <span data-key="lessons">الدروس</span></a>
+            <a href="live-classes.html"><i class="fas fa-video"></i> <span data-key="live">البث المباشر</span></a>
+            <a href="students.html"><i class="fas fa-users"></i> <span data-key="students">الطلاب</span></a>
+            <a href="assignments.html"><i class="fas fa-clipboard-list"></i> <span data-key="assignments">الواجبات</span></a>
+            <a href="exams.html"><i class="fas fa-file-alt"></i> <span data-key="exams">الامتحانات</span></a>
+            <a href="question-bank.html"><i class="fas fa-database"></i> <span data-key="questionBank">بنك الأسئلة</span></a>
+            <a href="attendance.html"><i class="fas fa-calendar-check"></i> <span data-key="attendance">الحضور</span></a>
+            <a href="messages.html"><i class="fas fa-comments"></i> <span data-key="messages">الرسائل</span></a>
+            <a href="notifications.html"><i class="fas fa-bell"></i> <span data-key="notifications">الإشعارات</span></a>
+            <a href="announcements.html"><i class="fas fa-bullhorn"></i> <span data-key="announcements">الإعلانات</span></a>
+            <a href="revenue.html"><i class="fas fa-dollar-sign"></i> <span data-key="revenue">الإيرادات</span></a>
+            <a href="subscription-codes.html"><i class="fas fa-key"></i> <span data-key="subscription">أكواد الاشتراك</span></a>
+            <a href="analytics.html"><i class="fas fa-chart-line"></i> <span data-key="analytics">التحليلات</span></a>
+            <a href="calendar.html"><i class="fas fa-calendar"></i> <span data-key="calendar">التقويم</span></a>
+            <a href="profile.html"><i class="fas fa-id-card"></i> <span data-key="profile">الملف الشخصي</span></a>
+            <a href="settings.html"><i class="fas fa-cog"></i> <span data-key="settings">الإعدادات</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <i class="fas fa-lock"></i> <span data-key="secureLogin">تسجيل دخول آمن</span>
+        </div>
+    </aside>
 
-    <div id="messageBox" class="message-box"><i id="msgIcon" class="fas fa-info-circle"></i><span id="msgText"></span></div>
-
-    <div class="footer-lang">
-      <button class="link-btn" id="forgotPasswordBtn"><i class="fas fa-key"></i> نسيت كلمة المرور؟</button>
-      <div style="display:flex; gap:1rem;">
-        <a href="register.html" class="link-btn"><i class="fas fa-user-plus"></i> إنشاء حساب</a>
-        <button class="link-btn" id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
-        <button class="link-btn" id="darkToggle" style="color:#6b7d9c;"><i class="fas fa-moon"></i> <span id="darkLabel">داكن</span></button>
-      </div>
+    <!-- المحتوى الرئيسي -->
+    <div class="main" id="mainContent">
+        <!-- بطاقة تسجيل الدخول -->
+        <div class="login-card">
+            <div class="login-header">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h2 data-key="teacherLogin">تسجيل دخول المعلم</h2>
+                <p data-key="welcomeBack">مرحباً بعودتك! سجّل دخولك للمنصة</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label data-key="email">البريد الإلكتروني</label>
+                    <div class="input-wrapper">
+                        <input type="email" id="email" placeholder="example@email.com" required>
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-key="password">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="password" placeholder="••••••••" required>
+                        <i class="fas fa-lock"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="loginBtn">
+                    <span data-key="signIn">تسجيل الدخول</span>
+                </button>
+            </form>
+            <div class="toggle-buttons">
+                <button class="toggle-btn" id="langToggle">
+                    <i class="fas fa-globe"></i>
+                    <span id="langLabel">English</span>
+                </button>
+                <button class="toggle-btn" id="darkToggle">
+                    <i class="fas fa-moon"></i>
+                    <span data-key="darkMode">الوضع الليلي</span>
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    <!-- حاوية التوست -->
+    <div class="toast-container" id="toastContainer"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
-      authDomain: "zentor-caaf1.firebaseapp.com",
-      projectId: "zentor-caaf1",
-      storageBucket: "zentor-caaf1.firebasestorage.app",
-      messagingSenderId: "681267238383",
-      appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
-      measurementId: "G-X80GNJHMS5"
-    };
+    <!-- زر الهامبرغر للموبايل -->
+    <button class="hamburger" id="hamburgerBtn">
+        <i class="fas fa-bars"></i>
+    </button>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
-    const emailInput = document.getElementById('emailInput');
-    const passwordInput = document.getElementById('passwordInput');
-    const loginForm = document.getElementById('loginForm');
-    const loginBtn = document.getElementById('loginBtn');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
-    const messageBox = document.getElementById('messageBox');
-    const msgText = document.getElementById('msgText');
-    const msgIcon = document.getElementById('msgIcon');
-    const forgotBtn = document.getElementById('forgotPasswordBtn');
-    const togglePwd = document.getElementById('togglePwd');
+        // إعدادات Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+            authDomain: "zentor-caaf1.firebaseapp.com",
+            projectId: "zentor-caaf1",
+            storageBucket: "zentor-caaf1.firebasestorage.app",
+            messagingSenderId: "681267238383",
+            appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+            measurementId: "G-X80GNJHMS5"
+        };
 
-    function showMessage(text, type = 'error') {
-      messageBox.className = `message-box ${type}`;
-      msgText.textContent = text;
-      msgIcon.className = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-      messageBox.style.display = 'flex';
-    }
-    function hideMessage() { messageBox.style.display = 'none'; messageBox.className = 'message-box'; }
-    function setLoading(isLoading) { loginBtn.disabled = isLoading; btnText.style.display = isLoading ? 'none' : 'inline'; btnSpinner.style.display = isLoading ? 'inline' : 'none'; }
+        // إعدادات Cloudinary
+        const CLOUDINARY_CLOUD_NAME = 'deaevfmvm';
+        const CLOUDINARY_UPLOAD_PRESET = 'ml_default';
 
-    togglePwd.addEventListener('click', () => {
-      passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
-      togglePwd.querySelector('i').className = passwordInput.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
-    });
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); hideMessage();
-      const email = emailInput.value.trim(), password = passwordInput.value;
-      if (!email || !password) { showMessage('يرجى إدخال البريد وكلمة المرور', 'error'); return; }
-      setLoading(true);
-      try {
-        const userCred = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCred.user;
+        // عناصر DOM
+        const loginForm = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const toastContainer = document.getElementById('toastContainer');
 
-        const teacherDoc = await getDoc(doc(db, 'teachers', user.uid, 'settings', 'preferences'));
-        if (!teacherDoc.exists()) { await signOut(auth); showMessage('هذا الحساب ليس حساب معلم.', 'error'); setLoading(false); return; }
+        // المتغيرات العامة
+        let currentLang = 'ar';
 
-        const data = teacherDoc.data();
-        if (data.status === 'pending') { await signOut(auth); showMessage('⏳ حسابك قيد المراجعة من قبل المشرف.', 'error'); setLoading(false); return; }
-
-        showMessage('✅ تم تسجيل الدخول!', 'success');
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
-      } catch (error) {
-        let msg = 'فشل تسجيل الدخول.';
-        if (error.code === 'auth/user-not-found') msg = 'لا يوجد حساب بهذا البريد.';
-        else if (error.code === 'auth/wrong-password') msg = 'كلمة مرور غير صحيحة.';
-        else if (error.code === 'auth/too-many-requests') msg = 'محاولات كثيرة. حاول لاحقًا.';
-        showMessage(msg, 'error');
-      } finally { setLoading(false); }
-    });
-
-    forgotBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      if (!email) { showMessage('أدخل بريدك أولاً', 'error'); return; }
-      try { await sendPasswordResetEmail(auth, email); showMessage('✅ تم إرسال رابط الاستعادة!', 'success'); }
-      catch (error) { showMessage('فشل إرسال رابط الاستعادة.', 'error'); }
-    });
-
-    // لغة ووضع ليلي
-    let lang = 'ar', isDark = false;
-    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle');
-    const langLabel = document.getElementById('langLabel'), darkLabel = document.getElementById('darkLabel');
-    const subhead = document.getElementById('subhead'), authCard = document.getElementById('authCard');
-
-    function applyLanguage(l) {
-      lang = l;
-      if (l === 'ar') {
-        authCard.classList.add('rtl'); document.documentElement.lang = 'ar'; document.documentElement.dir = 'rtl';
-        subhead.textContent = 'بوابة المعلم'; emailInput.placeholder = 'teacher@zentor.com';
-        document.querySelector('label[for="emailInput"]').textContent = 'البريد الإلكتروني';
-        document.querySelector('label[for="passwordInput"]').textContent = 'كلمة المرور';
-        btnText.textContent = 'تسجيل الدخول'; forgotBtn.innerHTML = '<i class="fas fa-key"></i> نسيت كلمة المرور؟';
-        langLabel.textContent = 'AR';
-      } else {
-        authCard.classList.remove('rtl'); document.documentElement.lang = 'en'; document.documentElement.dir = 'ltr';
-        subhead.textContent = 'Teacher Portal'; emailInput.placeholder = 'teacher@zentor.com';
-        document.querySelector('label[for="emailInput"]').textContent = 'Email';
-        document.querySelector('label[for="passwordInput"]').textContent = 'Password';
-        btnText.textContent = 'Sign in'; forgotBtn.innerHTML = '<i class="fas fa-key"></i> Forgot password?';
-        langLabel.textContent = 'EN';
-      }
-    }
-    langToggle.addEventListener('click', () => applyLanguage(lang === 'ar' ? 'en' : 'ar'));
-    darkToggle.addEventListener('click', () => {
-      isDark = !isDark; document.body.classList.toggle('dark-mode', isDark);
-      darkLabel.textContent = isDark ? 'فاتح' : 'داكن';
-      darkToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i> ' : '<i class="fas fa-moon"></i> ';
-      darkToggle.appendChild(document.createTextNode(darkLabel.textContent));
-    });
-
-    // إذا كان مسجلاً بالفعل
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const teacherDoc = await getDoc(doc(db, 'teachers', user.uid, 'settings', 'preferences'));
-        if (teacherDoc.exists() && teacherDoc.data().status === 'active') {
-          window.location.href = 'dashboard.html';
+        // ---------- دوال المساعدة ----------
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            toast.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
         }
-      }
-    });
 
-    applyLanguage('ar');
-  </script>
+        function setLoading(loading) {
+            const btnText = loginBtn.querySelector('span');
+            if (loading) {
+                loginBtn.disabled = true;
+                btnText.innerHTML = `<span class="spinner"></span> ${translations[currentLang].loading}`;
+            } else {
+                loginBtn.disabled = false;
+                btnText.textContent = translations[currentLang].signIn;
+            }
+        }
+
+        // استخراج الاسم من البريد الإلكتروني
+        function getNameFromEmail(email) {
+            if (!email) return 'معلم';
+            const localPart = email.split('@')[0];
+            // تنظيف الجزء المحلي من الرموز الخاصة
+            const cleaned = localPart.replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
+            if (cleaned.length === 0) return 'معلم';
+            // جعل أول حرف كبيراً
+            return cleaned.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        // التحقق من حالة المعلم بعد تسجيل الدخول
+        async function checkTeacherProfile(user) {
+            const teacherId = user.uid;
+            const profileRef = doc(db, 'teachers', teacherId, 'settings', 'profile');
+            const preferencesRef = doc(db, 'teachers', teacherId, 'settings', 'preferences');
+
+            try {
+                // التحقق من وجود الملف الشخصي
+                const profileSnap = await getDoc(profileRef);
+
+                if (!profileSnap.exists()) {
+                    // إنشاء الملف الشخصي تلقائياً
+                    const teacherName = getNameFromEmail(user.email);
+                    await setDoc(profileRef, {
+                        name: teacherName,
+                        email: user.email,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp(),
+                        photoURL: null,
+                        bio: '',
+                        specialties: []
+                    });
+                }
+
+                // التحقق من وجود التفضيلات
+                const prefSnap = await getDoc(preferencesRef);
+
+                if (!prefSnap.exists()) {
+                    // إنشاء تفضيلات افتراضية
+                    await setDoc(preferencesRef, {
+                        status: 'pending', // حالة "قيد المراجعة" الافتراضية
+                        language: 'ar',
+                        darkMode: false,
+                        notifications: {
+                            email: true,
+                            push: true,
+                            students: true,
+                            courses: true
+                        },
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    // المعلم غير مفعل بعد - نسجل الخروج ونظهر رسالة
+                    await signOut(auth);
+                    showToast(translations[currentLang].accountUnderReview, 'error');
+                    return false;
+                }
+
+                // التحقق من حالة التفعيل
+                const status = prefSnap.data().status;
+                if (status === 'pending') {
+                    // المعلم قيد المراجعة
+                    await signOut(auth);
+                    showToast(translations[currentLang].accountUnderReview, 'error');
+                    return false;
+                }
+
+                if (status === 'blocked' || status === 'suspended') {
+                    await signOut(auth);
+                    showToast(translations[currentLang].accountBlocked, 'error');
+                    return false;
+                }
+
+                // المعلم مفعل - توجيه إلى لوحة التحكم
+                return true;
+
+            } catch (error) {
+                console.error('خطأ في التحقق من ملف المعلم:', error);
+                showToast(translations[currentLang].errorChecking + ': ' + error.message, 'error');
+                await signOut(auth);
+                return false;
+            }
+        }
+
+        // ---------- معالج تسجيل الدخول ----------
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showToast(translations[currentLang].fillAllFields, 'error');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                // تسجيل الدخول عبر Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // التحقق من حالة المعلم
+                const isActive = await checkTeacherProfile(user);
+
+                if (isActive) {
+                    showToast(translations[currentLang].loginSuccess, 'success');
+                    // توجيه إلى لوحة التحكم بعد تأخير قصير
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('خطأ في تسجيل الدخول:', error);
+                let errorMessage = translations[currentLang].loginFailed;
+
+                // ترجمة أخطاء Firebase الشائعة
+                switch (error.code) {
+                    case 'auth/invalid-email':
+                        errorMessage = translations[currentLang].invalidEmail;
+                        break;
+                    case 'auth/user-not-found':
+                        errorMessage = translations[currentLang].userNotFound;
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = translations[currentLang].wrongPassword;
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = translations[currentLang].tooManyRequests;
+                        break;
+                    case 'auth/invalid-credential':
+                        errorMessage = translations[currentLang].invalidCredentials;
+                        break;
+                }
+
+                showToast(errorMessage, 'error');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // ---------- التحقق من حالة المستخدم عند تحميل الصفحة ----------
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // المستخدم مسجل دخوله بالفعل - التحقق من حالة المعلم
+                const isActive = await checkTeacherProfile(user);
+                if (isActive) {
+                    // توجيه مباشر إلى لوحة التحكم
+                    window.location.href = 'dashboard.html';
+                }
+            }
+        });
+
+        // ---------- الشريط الجانبي ----------
+        hamburgerBtn.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('show');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        });
+
+        // إغلاق الشريط الجانبي عند النقر على رابط (للموبايل)
+        document.querySelectorAll('.sidebar nav a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                // منع التوجيه الافتراضي لأنها صفحة تسجيل دخول
+                e.preventDefault();
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('show');
+                }
+                showToast(translations[currentLang].loginFirst, 'error');
+            });
+        });
+
+        // ---------- الترجمة واللغة ----------
+        const translations = {
+            ar: {
+                teacherLogin: 'تسجيل دخول المعلم',
+                welcomeBack: 'مرحباً بعودتك! سجّل دخولك للمنصة',
+                email: 'البريد الإلكتروني',
+                password: 'كلمة المرور',
+                signIn: 'تسجيل الدخول',
+                loading: 'جاري التحميل...',
+                darkMode: 'الوضع الليلي',
+                dashboard: 'لوحة التحكم',
+                courses: 'الكورسات',
+                lessons: 'الدروس',
+                live: 'البث المباشر',
+                students: 'الطلاب',
+                assignments: 'الواجبات',
+                exams: 'الامتحانات',
+                questionBank: 'بنك الأسئلة',
+                attendance: 'الحضور',
+                messages: 'الرسائل',
+                notifications: 'الإشعارات',
+                announcements: 'الإعلانات',
+                revenue: 'الإيرادات',
+                subscription: 'أكواد الاشتراك',
+                analytics: 'التحليلات',
+                calendar: 'التقويم',
+                profile: 'الملف الشخصي',
+                settings: 'الإعدادات',
+                secureLogin: 'تسجيل دخول آمن',
+                loginSuccess: 'تم تسجيل الدخول بنجاح! جاري التوجيه...',
+                loginFailed: 'فشل تسجيل الدخول. تحقق من بياناتك.',
+                fillAllFields: 'يرجى ملء جميع الحقول',
+                accountUnderReview: 'حسابك قيد المراجعة. يرجى الانتظار حتى يتم تفعيله من قبل الإدارة.',
+                accountBlocked: 'تم حظر حسابك. يرجى التواصل مع الإدارة.',
+                errorChecking: 'خطأ في التحقق من الحساب',
+                invalidEmail: 'البريد الإلكتروني غير صالح',
+                userNotFound: 'لم يتم العثور على مستخدم بهذا البريد الإلكتروني',
+                wrongPassword: 'كلمة المرور غير صحيحة',
+                tooManyRequests: 'محاولات كثيرة. يرجى المحاولة لاحقاً',
+                invalidCredentials: 'بيانات الدخول غير صحيحة',
+                loginFirst: 'يجب تسجيل الدخول أولاً للوصول إلى هذه الصفحة'
+            },
+            en: {
+                teacherLogin: 'Teacher Login',
+                welcomeBack: 'Welcome back! Sign in to the platform',
+                email: 'Email Address',
+                password: 'Password',
+                signIn: 'Sign In',
+                loading: 'Loading...',
+                darkMode: 'Dark Mode',
+                dashboard: 'Dashboard',
+                courses: 'Courses',
+                lessons: 'Lessons',
+                live: 'Live Classes',
+                students: 'Students',
+                assignments: 'Assignments',
+                exams: 'Exams',
+                questionBank: 'Question Bank',
+                attendance: 'Attendance',
+                messages: 'Messages',
+                notifications: 'Notifications',
+                announcements: 'Announcements',
+                revenue: 'Revenue',
+                subscription: 'Subscription Codes',
+                analytics: 'Analytics',
+                calendar: 'Calendar',
+                profile: 'Profile',
+                settings: 'Settings',
+                secureLogin: 'Secure Login',
+                loginSuccess: 'Login successful! Redirecting...',
+                loginFailed: 'Login failed. Check your credentials.',
+                fillAllFields: 'Please fill in all fields',
+                accountUnderReview: 'Your account is under review. Please wait for admin activation.',
+                accountBlocked: 'Your account has been blocked. Please contact admin.',
+                errorChecking: 'Error checking account',
+                invalidEmail: 'Invalid email address',
+                userNotFound: 'No user found with this email',
+                wrongPassword: 'Incorrect password',
+                tooManyRequests: 'Too many attempts. Please try again later',
+                invalidCredentials: 'Invalid credentials',
+                loginFirst: 'You must login first to access this page'
+            }
+        };
+
+        function applyLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            // تحديث جميع العناصر التي تحمل data-key
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.dataset.key;
+                if (t[key]) {
+                    el.textContent = t[key];
+                }
+            });
+
+            // تحديث اتجاه الصفحة
+            if (lang === 'ar') {
+                document.documentElement.dir = 'rtl';
+                document.documentElement.lang = 'ar';
+                sidebar.style.right = '0';
+                sidebar.style.left = 'auto';
+                document.getElementById('mainContent').style.marginRight = '260px';
+                document.getElementById('mainContent').style.marginLeft = '0';
+                document.getElementById('langLabel').textContent = 'English';
+            } else {
+                document.documentElement.dir = 'ltr';
+                document.documentElement.lang = 'en';
+                sidebar.style.left = '0';
+                sidebar.style.right = 'auto';
+                document.getElementById('mainContent').style.marginLeft = '260px';
+                document.getElementById('mainContent').style.marginRight = '0';
+                document.getElementById('langLabel').textContent = 'العربية';
+            }
+
+            // تحديث placeholder
+            emailInput.placeholder = lang === 'ar' ? 'example@email.com' : 'example@email.com';
+            passwordInput.placeholder = lang === 'ar' ? '••••••••' : '••••••••';
+        }
+
+        // زر تبديل اللغة
+        document.getElementById('langToggle').addEventListener('click', () => {
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            applyLanguage(newLang);
+        });
+
+        // ---------- الوضع الليلي ----------
+        const darkToggle = document.getElementById('darkToggle');
+
+        function applyDarkMode(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                darkToggle.querySelector('i').className = 'fas fa-sun';
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkToggle.querySelector('i').className = 'fas fa-moon';
+            }
+        }
+
+        // استعادة تفضيلات الوضع الليلي من التخزين المحلي
+        const savedDarkMode = localStorage.getItem('zentor_dark_mode');
+        if (savedDarkMode === 'true') {
+            applyDarkMode(true);
+        }
+
+        darkToggle.addEventListener('click', () => {
+            const isDark = !document.body.classList.contains('dark-mode');
+            applyDarkMode(isDark);
+            localStorage.setItem('zentor_dark_mode', isDark ? 'true' : 'false');
+        });
+
+        // ---------- دالة تحميل Cloudinary (للاستخدام المستقبلي) ----------
+        window.uploadToCloudinary = async function(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(
+                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
+                    { method: 'POST', body: formData }
+                );
+                const data = await response.json();
+                return data.secure_url;
+            } catch (error) {
+                console.error('Cloudinary upload failed:', error);
+                throw error;
+            }
+        };
+
+        // ---------- التهيئة الأولية ----------
+        applyLanguage('ar');
+
+        // تعديل CSS للتوافق مع اللغة الإنجليزية عند التبديل
+        const style = document.createElement('style');
+        style.id = 'dynamic-styles';
+        document.head.appendChild(style);
+
+        function updateDynamicStyles() {
+            const dynamicStyle = document.getElementById('dynamic-styles');
+            if (currentLang === 'en') {
+                dynamicStyle.textContent = `
+                    .sidebar { border-right: 1px solid rgba(231, 237, 245, 0.6); border-left: none; }
+                    body.dark-mode .sidebar { border-right-color: rgba(42, 52, 66, 0.6); }
+                    .toast.success { border-left: 4px solid #10B981; border-right: none; }
+                    .toast.error { border-left: 4px solid #EF4444; border-right: none; }
+                    @media (max-width: 768px) {
+                        .sidebar { transform: translateX(-100%); }
+                        .sidebar.open { transform: translateX(0); }
+                    }
+                `;
+            } else {
+                dynamicStyle.textContent = `
+                    .sidebar { border-left: 1px solid rgba(231, 237, 245, 0.6); border-right: none; }
+                    body.dark-mode .sidebar { border-left-color: rgba(42, 52, 66, 0.6); }
+                    .toast.success { border-right: 4px solid #10B981; border-left: none; }
+                    .toast.error { border-right: 4px solid #EF4444; border-left: none; }
+                    @media (max-width: 768px) {
+                        .sidebar { transform: translateX(100%); }
+                        .sidebar.open { transform: translateX(0); }
+                    }
+                `;
+            }
+        }
+
+        // مراقب لتحديث الأنماط عند تغيير اللغة
+        const originalApplyLanguage = applyLanguage;
+        applyLanguage = function(lang) {
+            originalApplyLanguage(lang);
+            updateDynamicStyles();
+        };
+
+        updateDynamicStyles();
+
+        console.log('✅ Zentor Teacher Login ready.');
+        console.log('📦 Firebase config:', firebaseConfig.projectId);
+        console.log('☁️ Cloudinary:', CLOUDINARY_CLOUD_NAME);
+    </script>
 </body>
 </html>
