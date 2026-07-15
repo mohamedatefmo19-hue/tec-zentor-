@@ -45,7 +45,6 @@
         .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
         body.dark-mode .hamburger { color: #b0c0d4; }
 
-        /* بطاقة الملف الشخصي */
         .profile-header { background: #ffffff; border-radius: 20px; border: 1px solid #eef2f8; padding: 1.8rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; margin-bottom: 2rem; }
         body.dark-mode .profile-header { background: #1a1f2b; border-color: #2a3442; }
         .avatar { width: 80px; height: 80px; background: #e8f0fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #2a7de1; }
@@ -64,7 +63,6 @@
         .btn-secondary:hover { background: #dfe6f0; }
         body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
 
-        /* التبويبات */
         .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
         .tab-btn { padding: 0.6rem 1.5rem; border-radius: 30px; background: #eef2f8; border: none; font-weight: 600; cursor: pointer; color: #4a5b7a; transition: 0.15s; }
         body.dark-mode .tab-btn { background: #2a3442; color: #b0c0d4; }
@@ -115,7 +113,6 @@
         <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
         <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
         <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
-        <a href="lesson-upload.html"><i class="fas fa-upload"></i> رفع درس</a>
         <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
         <a href="students.html" class="active"><i class="fas fa-users"></i> الطلاب</a>
         <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
@@ -142,9 +139,8 @@
         </div>
     </header>
 
-    <!-- قسم رأس الملف -->
     <div class="profile-header" id="profileHeader">
-        <div class="avatar" id="studentAvatar"><i class="fas fa-user-graduate"></i></div>
+        <div class="avatar"><i class="fas fa-user-graduate"></i></div>
         <div class="profile-info">
             <h2 id="studentName">---</h2>
             <p><i class="fas fa-envelope"></i> <span id="studentEmail"></span></p>
@@ -156,7 +152,6 @@
         </div>
     </div>
 
-    <!-- التبويبات -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="courses">الكورسات</button>
         <button class="tab-btn" data-tab="results">النتائج</button>
@@ -164,7 +159,6 @@
         <button class="tab-btn" data-tab="activity">النشاط</button>
     </div>
 
-    <!-- المحتوى -->
     <div id="tab-courses" class="tab-content active">
         <div class="table-wrapper"><div class="table-responsive"><table><thead><tr><th>الكورس</th><th>التقدم</th><th>تاريخ التسجيل</th></tr></thead><tbody id="coursesTableBody"><tr><td colspan="3"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr></tbody></table></div></div>
     </div>
@@ -197,7 +191,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
@@ -220,19 +214,18 @@
     const urlParams = new URLSearchParams(window.location.search);
     STUDENT_ID = urlParams.get('id') || '';
 
+    // التحقق من المعلم
     onAuthStateChanged(auth, async (user) => {
         if (!user) { window.location.href = 'login.html'; return; }
         TEACHER_ID = user.uid;
-        // التحقق من حالة المعلم
-        const teacherDocRef = doc(db, 'teachers', user.uid);
         try {
-            const snap = await getDoc(teacherDocRef);
-            if (!snap.exists() || snap.data().status === 'pending') {
+            const prefDoc = await getDoc(doc(db, 'teachers', TEACHER_ID, 'settings', 'preferences'));
+            if (!prefDoc.exists() || prefDoc.data().status === 'pending') {
                 await signOut(auth);
                 window.location.href = 'login.html';
                 return;
             }
-        } catch(e) {}
+        } catch (e) { console.error(e); }
         if (!STUDENT_ID) {
             window.location.href = 'students.html';
             return;
@@ -242,7 +235,7 @@
         listenToCollections();
     });
 
-    // إعدادات الشريط الجانبي
+    // الشريط الجانبي
     const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
     document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
     overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
@@ -256,15 +249,11 @@
         container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
     }
 
-    // تحميل بيانات الطالب الأساسية
     async function loadStudentData() {
         try {
             const studentRef = doc(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID);
             const studentSnap = await getDoc(studentRef);
-            if (!studentSnap.exists()) {
-                showToast('الطالب غير موجود', 'error');
-                return;
-            }
+            if (!studentSnap.exists()) { showToast('الطالب غير موجود', 'error'); return; }
             const data = studentSnap.data();
             document.getElementById('studentName').textContent = data.name || 'غير معروف';
             document.getElementById('studentEmail').textContent = data.email || '—';
@@ -277,12 +266,9 @@
             blockBtn.innerHTML = blocked ? '<i class="fas fa-unlock"></i> إلغاء الحظر' : '<i class="fas fa-ban"></i> حظر';
             blockBtn.className = blocked ? 'btn btn-secondary' : 'btn btn-danger';
             blockBtn.onclick = () => openBlockModal(blocked);
-        } catch (err) {
-            showToast('خطأ في تحميل بيانات الطالب', 'error');
-        }
+        } catch (err) { showToast('خطأ في تحميل بيانات الطالب', 'error'); }
     }
 
-    // فتح مودال الحظر
     const blockModal = document.getElementById('blockModal');
     function openBlockModal(currentlyBlocked) {
         document.getElementById('blockModalTitle').textContent = currentlyBlocked ? 'إلغاء الحظر' : 'حظر الطالب';
@@ -293,27 +279,22 @@
                 await updateDoc(doc(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID), { blocked: !currentlyBlocked });
                 showToast(currentlyBlocked ? 'تم إلغاء الحظر' : 'تم حظر الطالب');
                 blockModal.classList.remove('active');
-                loadStudentData(); // تحديث الواجهة
+                loadStudentData();
             } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
         };
     }
     document.getElementById('blockCancelBtn').addEventListener('click', () => blockModal.classList.remove('active'));
 
-    // استماع إلى المجموعات الفرعية (كورسات، نتائج، حضور، نشاط)
     function listenToCollections() {
         // الكورسات
         const coursesQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'courses'), orderBy('enrolledAt', 'desc'));
         onSnapshot(coursesQuery, snapshot => {
             const tbody = document.getElementById('coursesTableBody');
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-book"></i><p>لا يوجد كورسات</p></div></td></tr>';
-                return;
-            }
+            if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-book"></i><p>لا يوجد كورسات</p></div></td></tr>'; return; }
             tbody.innerHTML = '';
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const row = `<tr><td>${d.courseName || '—'}</td><td>${d.progress || 0}%</td><td>${d.enrolledAt ? new Date(d.enrolledAt.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
-                tbody.innerHTML += row;
+                tbody.innerHTML += `<tr><td>${d.courseName || '—'}</td><td>${d.progress || 0}%</td><td>${d.enrolledAt ? new Date(d.enrolledAt.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
             });
         });
 
@@ -321,15 +302,11 @@
         const resultsQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'results'), orderBy('date', 'desc'));
         onSnapshot(resultsQuery, snapshot => {
             const tbody = document.getElementById('resultsTableBody');
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-chart-bar"></i><p>لا توجد نتائج</p></div></td></tr>';
-                return;
-            }
+            if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-chart-bar"></i><p>لا توجد نتائج</p></div></td></tr>'; return; }
             tbody.innerHTML = '';
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const row = `<tr><td>${d.examTitle || '—'}</td><td>${d.score || 0}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
-                tbody.innerHTML += row;
+                tbody.innerHTML += `<tr><td>${d.examTitle || '—'}</td><td>${d.score || 0}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
             });
         });
 
@@ -337,17 +314,13 @@
         const attendanceQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'attendance'), orderBy('date', 'desc'));
         onSnapshot(attendanceQuery, snapshot => {
             const tbody = document.getElementById('attendanceTableBody');
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-calendar-check"></i><p>لا يوجد سجل حضور</p></div></td></tr>';
-                return;
-            }
+            if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-calendar-check"></i><p>لا يوجد سجل حضور</p></div></td></tr>'; return; }
             tbody.innerHTML = '';
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const status = d.present ? 'حاضر' : 'غائب';
-                const badgeClass = d.present ? 'badge-success' : 'badge-danger';
-                const row = `<tr><td>${d.sessionTitle || '—'}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
-                tbody.innerHTML += row;
+                const present = d.present ? 'حاضر' : 'غائب';
+                const badge = d.present ? 'badge-success' : 'badge-danger';
+                tbody.innerHTML += `<tr><td>${d.sessionTitle || '—'}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td><td><span class="badge ${badge}">${present}</span></td></tr>`;
             });
         });
 
@@ -355,15 +328,11 @@
         const activityQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'activity'), orderBy('timestamp', 'desc'));
         onSnapshot(activityQuery, snapshot => {
             const tbody = document.getElementById('activityTableBody');
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-history"></i><p>لا يوجد نشاط</p></div></td></tr>';
-                return;
-            }
+            if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-history"></i><p>لا يوجد نشاط</p></div></td></tr>'; return; }
             tbody.innerHTML = '';
             snapshot.forEach(doc => {
                 const d = doc.data();
-                const row = `<tr><td>${d.action || '—'}</td><td>${d.details || '—'}</td><td>${d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleString('ar-EG') : '—'}</td></tr>`;
-                tbody.innerHTML += row;
+                tbody.innerHTML += `<tr><td>${d.action || '—'}</td><td>${d.details || '—'}</td><td>${d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleString('ar-EG') : '—'}</td></tr>`;
             });
         });
     }
@@ -378,7 +347,6 @@
         });
     });
 
-    // إغلاق المودال عند الضغط خارجه
     blockModal.addEventListener('click', (e) => { if (e.target === blockModal) blockModal.classList.remove('active'); });
 
     // لغة ووضع ليلي
@@ -390,7 +358,7 @@
         document.querySelectorAll('.tab-btn[data-tab="results"]').textContent = lc==='ar'?'النتائج':'Results';
         document.querySelectorAll('.tab-btn[data-tab="attendance"]').textContent = lc==='ar'?'الحضور':'Attendance';
         document.querySelectorAll('.tab-btn[data-tab="activity"]').textContent = lc==='ar'?'النشاط':'Activity';
-        if (lc === 'ar') { document.documentElement.dir = 'rtl'; } else { document.documentElement.dir = 'ltr'; }
+        document.documentElement.dir = lc === 'ar' ? 'rtl' : 'ltr';
     }
     langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
     darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; });
