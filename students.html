@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Zentor · إدارة الطلاب</title>
+    <!-- الخطوط والأيقونات -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* نفس التنسيقات الأساسية من النموذج المرفق */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #0b1e33; display: flex; min-height: 100vh; }
+        body.dark-mode { background: #0b0e14; color: #eef2f6; }
+        /* الشريط الجانبي */
+        .sidebar { width: 260px; background: #ffffff; border-left: 1px solid #e7edf5; padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed; top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0); }
+        body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
+        .sidebar.closed { transform: translateX(100%); }
+        .sidebar-logo { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem; }
+        .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
+        body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
+        .sidebar nav { flex: 1; }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px; color: #4a5b7a; text-decoration: none; font-weight: 500; transition: 0.15s; margin-bottom: 0.3rem; }
+        .sidebar nav a i { width: 1.4rem; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: #eef4fe; color: #1a67c4; }
+        body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-footer { border-top: 1px solid #e7edf5; padding-top: 1.2rem; margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #6b7d9c; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; }
+        .sidebar-footer:hover { color: #e74c3c; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+        .sidebar-overlay.show { display: block; }
+        /* المحتوى الرئيسي */
+        .main { flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease; overflow-x: hidden; width: 100%; }
+        .main.expanded { margin-right: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        .navbar h1 { font-size: 1.7rem; font-weight: 700; }
+        .navbar-actions { display: flex; align-items: center; gap: 1.2rem; }
+        .navbar-actions button { background: none; border: none; font-size: 1.2rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .navbar-actions button { color: #b0c0d4; }
+        .navbar-actions button:hover { color: #2a7de1; }
+        .lang-dark { display: flex; gap: 0.6rem; }
+        .lang-dark button { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; }
+        .lang-dark .dark-toggle { color: #6b7d9c; }
+        body.dark-mode .lang-dark .dark-toggle { color: #b0c0d4; }
+        .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .hamburger { color: #b0c0d4; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.8rem; align-items: center; }
+        .toolbar .search-box { flex: 1; min-width: 200px; display: flex; align-items: center; background: #ffffff; border: 1.5px solid #dfe6f0; border-radius: 40px; padding: 0.4rem 0.4rem 0.4rem 1.2rem; }
+        body.dark-mode .toolbar .search-box { background: #1a1f2b; border-color: #3b465b; }
+        .toolbar .search-box:focus-within { border-color: #2a7de1; box-shadow: 0 0 0 4px rgba(42,125,225,0.1); }
+        .toolbar .search-box input { border: none; background: transparent; padding: 0.6rem 0; flex: 1; font-size: 0.95rem; outline: none; color: #1a253a; }
+        body.dark-mode .toolbar .search-box input { color: #eef2f6; }
+        .toolbar .search-box button { background: #2a7de1; border: none; color: white; padding: 0.5rem 1.2rem; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; font-size: 0.9rem; white-space: nowrap; }
+        .btn-primary { background: #2a7de1; color: white; }
+        .btn-primary:hover { background: #1a67c4; }
+        .btn-secondary { background: #eef2f8; color: #1a253a; }
+        .btn-secondary:hover { background: #dfe6f0; }
+        body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm { padding: 0.4rem 1rem; font-size: 0.8rem; }
+        .table-wrapper { background: #ffffff; border-radius: 20px; border: 1px solid #eef2f8; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        body.dark-mode .table-wrapper { background: #1a1f2b; border-color: #2a3442; }
+        .table-responsive { overflow-x: auto; padding: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead { background: #f9fbfe; border-bottom: 2px solid #eef2f8; }
+        body.dark-mode thead { background: #141a26; border-bottom-color: #2a3442; }
+        th { text-align: right; padding: 0.9rem 1rem; font-weight: 600; color: #4a5b7a; white-space: nowrap; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.3px; }
+        body.dark-mode th { color: #b0c0d4; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid #eef2f8; vertical-align: middle; }
+        body.dark-mode td { border-bottom-color: #2a3442; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(42,125,225,0.02); }
+        .badge { display: inline-block; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .badge-success { background: #e3f5e9; color: #1f7840; }
+        .badge-warning { background: #fef3e2; color: #b9770e; }
+        .badge-danger { background: #fde8e8; color: #c0392b; }
+        .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .action-btn { background: none; border: none; cursor: pointer; color: #4a5b7a; transition: 0.15s; padding: 0.3rem; font-size: 1rem; }
+        .action-btn:hover { color: #2a7de1; }
+        .action-btn.text-danger:hover { color: #e74c3c; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #8a9bb5; }
+        .empty-state i { font-size: 3rem; margin-bottom: 0.8rem; opacity: 0.5; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #ffffff; border-radius: 28px; max-width: 520px; width: 100%; padding: 2rem; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; position: relative; }
+        body.dark-mode .modal { background: #1a1f2b; }
+        .modal h2 { margin-bottom: 1.2rem; font-weight: 700; }
+        .modal .form-group { margin-bottom: 1.2rem; }
+        .modal .form-group label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+        .modal .form-group input, .modal .form-group textarea, .modal .form-group select { width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #dfe6f0; border-radius: 14px; font-size: 0.95rem; background: #f9fbfe; }
+        body.dark-mode .modal .form-group input, body.dark-mode .modal .form-group textarea, body.dark-mode .modal .form-group select { background: #252d3d; border-color: #3b465b; color: #eef2f6; }
+        .modal .form-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; justify-content: flex-end; }
+        .modal .form-actions button { padding: 0.6rem 1.8rem; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; }
+        .modal .form-actions .cancel { background: #eef2f8; color: #1a253a; }
+        .modal .form-actions .submit { background: #2a7de1; color: white; }
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 0.8rem 1.5rem; border-radius: 14px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease; }
+        body.dark-mode .toast { background: #2a3442; color: #eef2f6; }
+        .toast.success { border-right: 4px solid #10B981; }
+        .toast.error { border-right: 4px solid #EF4444; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .hamburger { display: block; } .main { margin-right: 0; } .sidebar { transform: translateX(100%); } .sidebar.closed { transform: translateX(100%); } .sidebar.open { transform: translateX(0); } }
+        @media (max-width: 480px) { .toolbar { flex-direction: column; align-items: stretch; } .toolbar .search-box { width: 100%; } }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+        <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
+        <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
+        <a href="lesson-upload.html"><i class="fas fa-upload"></i> رفع درس</a>
+        <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
+        <a href="students.html" class="active"><i class="fas fa-users"></i> الطلاب</a>
+        <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
+        <a href="exams.html"><i class="fas fa-file-alt"></i> الامتحانات</a>
+        <a href="revenue.html"><i class="fas fa-dollar-sign"></i> الإيرادات</a>
+        <a href="messages.html"><i class="fas fa-comments"></i> الرسائل</a>
+        <a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a>
+    </nav>
+    <div class="sidebar-footer" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
+</aside>
+
+<div class="main" id="mainContent">
+    <header class="navbar">
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+            <h1>👥 إدارة الطلاب</h1>
+        </div>
+        <div class="navbar-actions">
+            <div class="lang-dark">
+                <button id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
+                <button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
+            </div>
+            <button><i class="fas fa-user-circle" style="font-size:1.6rem;"></i></button>
+        </div>
+    </header>
+
+    <div class="toolbar">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="ابحث عن طالب...">
+            <button id="searchBtn"><i class="fas fa-search"></i></button>
+        </div>
+        <button class="btn btn-secondary" id="exportCsvBtn"><i class="fas fa-download"></i> تصدير CSV</button>
+    </div>
+
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>الطالب</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>تاريخ التسجيل</th>
+                        <th>الحالة</th>
+                        <th>آخر نشاط</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                    <tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تفاصيل الطالب -->
+<div class="modal-overlay" id="detailsModal">
+    <div class="modal" style="max-width:600px;">
+        <h2 id="detailsStudentName">تفاصيل الطالب</h2>
+        <div id="detailsContent" style="margin-top:1rem;">
+            <p><strong>البريد الإلكتروني:</strong> <span id="detEmail"></span></p>
+            <p><strong>الحالة:</strong> <span id="detStatus"></span></p>
+            <p><strong>تاريخ التسجيل:</strong> <span id="detJoined"></span></p>
+            <p><strong>آخر نشاط:</strong> <span id="detLastActive"></span></p>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-secondary" id="closeDetailsBtn">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحظر / إلغاء الحظر -->
+<div class="modal-overlay" id="blockModal">
+    <div class="modal" style="max-width:420px;text-align:center;">
+        <i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:#e74c3c;margin-bottom:1rem;"></i>
+        <h2 id="blockModalTitle">تأكيد الإجراء</h2>
+        <p id="blockModalMsg" style="color:#6b7d9c;margin:12px 0 24px;"></p>
+        <div class="form-actions" style="justify-content:center;">
+            <button class="btn btn-secondary" id="blockCancelBtn">إلغاء</button>
+            <button class="btn btn-danger" id="blockConfirmBtn">تأكيد</button>
+        </div>
+    </div>
+</div>
+
+<!-- مودال حذف طالب -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal" style="max-width:420px;text-align:center;">
+        <i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:#e74c3c;margin-bottom:1rem;"></i>
+        <h2>حذف الطالب</h2>
+        <p style="color:#6b7d9c;margin:12px 0 24px;">هل أنت متأكد من حذف هذا الطالب؟</p>
+        <div class="form-actions" style="justify-content:center;">
+            <button class="btn btn-secondary" id="deleteCancelBtn">إلغاء</button>
+            <button class="btn btn-danger" id="confirmDeleteBtn">حذف</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+        authDomain: "zentor-caaf1.firebaseapp.com",
+        projectId: "zentor-caaf1",
+        storageBucket: "zentor-caaf1.firebasestorage.app",
+        messagingSenderId: "681267238383",
+        appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+        measurementId: "G-X80GNJHMS5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let TEACHER_ID = '';
+
+    // التحقق من المعلم
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        // التحقق من حالة المعلم
+        const teacherDocRef = doc(db, 'teachers', user.uid);
+        const teacherSnap = await getDocs(query(collection(db, 'teachers'), ...[/* استعلام بديل */]));
+        // بدلاً من where مع orderBy، سنجلب المستند مباشرة
+        try {
+            const docSnap = await getDocs(query(collection(db, 'teachers'), /* بدون where */));
+            // لكن نريد التحقق من status !== 'pending'، سنستخدم fetch للمستند مباشرة
+            const { getDoc } = await import("https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js");
+            const snap = await getDoc(teacherDocRef);
+            if (!snap.exists() || snap.data().status === 'pending') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+                return;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+        TEACHER_ID = user.uid;
+        document.body.classList.add('auth-ready');
+        listenToStudents();
+    });
+
+    // إعدادات الشريط الجانبي
+    const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+    document.querySelectorAll('.sidebar nav a').forEach(link => link.addEventListener('click', () => { if (window.innerWidth <= 768) { sidebar.classList.remove('open'); overlay.classList.remove('show'); } }));
+    document.getElementById('logoutBtn').addEventListener('click', () => { if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html'); });
+
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div'); toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
+        container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+    }
+
+    const tableBody = document.getElementById('studentsTableBody');
+    const searchInput = document.getElementById('searchInput');
+    let allStudents = [];
+    let currentStudentId = null;
+
+    // الاستماع إلى مجموعة الطلاب تحت المعلم
+    function listenToStudents() {
+        const q = query(collection(db, 'teachers', TEACHER_ID, 'students'), orderBy('registeredAt', 'desc'));
+        onSnapshot(q, snapshot => {
+            allStudents = [];
+            snapshot.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
+            renderTable(allStudents);
+        }, error => {
+            console.error(error);
+            showToast('فشل تحميل الطلاب', 'error');
+        });
+    }
+
+    function renderTable(students) {
+        if (!students.length) {
+            tableBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users-slash"></i><p>لا يوجد طلاب بعد</p></div></td></tr>';
+            return;
+        }
+        tableBody.innerHTML = students.map(s => {
+            const statusBadge = s.blocked ? 'badge-danger' : 'badge-success';
+            const statusText = s.blocked ? 'محظور' : 'نشط';
+            const lastActive = s.lastActive ? new Date(s.lastActive.seconds * 1000).toLocaleDateString('ar-EG') : '—';
+            const registered = s.registeredAt ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG') : '—';
+            return `<tr>
+                <td><strong>${s.name || '—'}</strong></td>
+                <td>${s.email || '—'}</td>
+                <td>${registered}</td>
+                <td><span class="badge ${statusBadge}">${statusText}</span></td>
+                <td>${lastActive}</td>
+                <td>
+                    <div class="actions">
+                        <button class="action-btn details-btn" data-id="${s.id}" title="تفاصيل"><i class="fas fa-eye"></i></button>
+                        <button class="action-btn block-btn" data-id="${s.id}" data-blocked="${s.blocked}" title="${s.blocked ? 'إلغاء الحظر' : 'حظر'}"><i class="fas ${s.blocked ? 'fa-unlock' : 'fa-ban'}"></i></button>
+                        <button class="action-btn text-danger delete-btn" data-id="${s.id}" title="حذف"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+
+        // ربط الأحداث
+        tableBody.querySelectorAll('.details-btn').forEach(b => b.addEventListener('click', () => openDetails(b.dataset.id)));
+        tableBody.querySelectorAll('.block-btn').forEach(b => b.addEventListener('click', () => openBlockModal(b.dataset.id, b.dataset.blocked === 'true')));
+        tableBody.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => openDeleteModal(b.dataset.id)));
+    }
+
+    searchInput.addEventListener('input', () => {
+        const term = searchInput.value.toLowerCase();
+        renderTable(allStudents.filter(s => (s.name||'').toLowerCase().includes(term) || (s.email||'').toLowerCase().includes(term)));
+    });
+
+    // تفاصيل الطالب
+    function openDetails(id) {
+        const student = allStudents.find(s => s.id === id);
+        if (!student) return;
+        document.getElementById('detEmail').textContent = student.email || '—';
+        document.getElementById('detStatus').textContent = student.blocked ? 'محظور' : 'نشط';
+        document.getElementById('detJoined').textContent = student.registeredAt ? new Date(student.registeredAt.seconds * 1000).toLocaleString('ar-EG') : '—';
+        document.getElementById('detLastActive').textContent = student.lastActive ? new Date(student.lastActive.seconds * 1000).toLocaleString('ar-EG') : '—';
+        document.getElementById('detailsStudentName').textContent = student.name || 'تفاصيل الطالب';
+        document.getElementById('detailsModal').classList.add('active');
+    }
+    document.getElementById('closeDetailsBtn').addEventListener('click', () => document.getElementById('detailsModal').classList.remove('active'));
+
+    // حظر / إلغاء حظر
+    const blockModal = document.getElementById('blockModal');
+    const blockModalTitle = document.getElementById('blockModalTitle');
+    const blockModalMsg = document.getElementById('blockModalMsg');
+    const blockConfirmBtn = document.getElementById('blockConfirmBtn');
+    let blockAction = null; // 'block' or 'unblock'
+
+    function openBlockModal(id, currentlyBlocked) {
+        currentStudentId = id;
+        blockAction = currentlyBlocked ? 'unblock' : 'block';
+        blockModalTitle.textContent = currentlyBlocked ? 'إلغاء الحظر' : 'حظر الطالب';
+        blockModalMsg.textContent = currentlyBlocked ? 'هل تريد إلغاء حظر هذا الطالب؟' : 'هل تريد حظر هذا الطالب؟';
+        blockModal.classList.add('active');
+    }
+
+    blockConfirmBtn.addEventListener('click', async () => {
+        if (!currentStudentId || !blockAction) return;
+        const newBlocked = blockAction === 'block';
+        try {
+            await updateDoc(doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId), { blocked: newBlocked });
+            showToast(newBlocked ? 'تم حظر الطالب' : 'تم إلغاء الحظر');
+            blockModal.classList.remove('active');
+        } catch (err) {
+            showToast('خطأ: ' + err.message, 'error');
+        }
+    });
+
+    document.getElementById('blockCancelBtn').addEventListener('click', () => blockModal.classList.remove('active'));
+
+    // حذف طالب
+    const deleteModal = document.getElementById('deleteModal');
+    function openDeleteModal(id) {
+        currentStudentId = id;
+        deleteModal.classList.add('active');
+    }
+    document.getElementById('deleteCancelBtn').addEventListener('click', () => deleteModal.classList.remove('active'));
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        if (!currentStudentId) return;
+        try {
+            await deleteDoc(doc(db, 'teachers', TEACHER_ID, 'students', currentStudentId));
+            showToast('تم حذف الطالب');
+            deleteModal.classList.remove('active');
+        } catch (err) {
+            showToast('خطأ: ' + err.message, 'error');
+        }
+    });
+
+    // تصدير CSV
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (!allStudents.length) {
+            showToast('لا يوجد بيانات للتصدير', 'error');
+            return;
+        }
+        const headers = ['الاسم', 'البريد الإلكتروني', 'تاريخ التسجيل', 'الحالة'];
+        const rows = allStudents.map(s => [
+            s.name || '',
+            s.email || '',
+            s.registeredAt ? new Date(s.registeredAt.seconds * 1000).toLocaleDateString('ar-EG') : '',
+            s.blocked ? 'محظور' : 'نشط'
+        ]);
+        let csvContent = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'students.csv';
+        link.click();
+        showToast('تم التصدير بنجاح');
+    });
+
+    // إغلاق المودالات عند الضغط خارجها
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    });
+
+    // لغة ووضع ليلي
+    let lang = 'ar';
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
+    function applyLanguage(lc) {
+        document.querySelector('.navbar h1').textContent = lc==='ar'?'👥 إدارة الطلاب':'👥 Students Management';
+        document.getElementById('searchInput').placeholder = lc==='ar'?'ابحث عن طالب...':'Search students...';
+        document.getElementById('exportCsvBtn').innerHTML = `<i class="fas fa-download"></i> ${lc==='ar'?'تصدير CSV':'Export CSV'}`;
+        // تعديل رؤوس الجدول
+        const ths = document.querySelectorAll('th');
+        if (ths.length >= 6) {
+            ths[0].textContent = lc==='ar'?'الطالب':'Student';
+            ths[1].textContent = lc==='ar'?'البريد الإلكتروني':'Email';
+            ths[2].textContent = lc==='ar'?'تاريخ التسجيل':'Registered';
+            ths[3].textContent = lc==='ar'?'الحالة':'Status';
+            ths[4].textContent = lc==='ar'?'آخر نشاط':'Last Active';
+            ths[5].textContent = lc==='ar'?'إجراءات':'Actions';
+        }
+        if (lc === 'ar') { document.documentElement.dir = 'rtl'; } else { document.documentElement.dir = 'ltr'; }
+    }
+    langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
+    darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; });
+    applyLanguage('ar');
+</script>
+</body>
+</html>
