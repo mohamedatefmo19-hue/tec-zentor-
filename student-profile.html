@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Zentor · ملف الطالب</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7fc; color: #0b1e33; display: flex; min-height: 100vh; }
+        body.dark-mode { background: #0b0e14; color: #eef2f6; }
+
+        .sidebar { width: 260px; background: #ffffff; border-left: 1px solid #e7edf5; padding: 2rem 1.2rem; display: flex; flex-direction: column; position: fixed; top: 0; right: 0; bottom: 0; z-index: 1000; transition: transform 0.3s ease; transform: translateX(0); }
+        body.dark-mode .sidebar { background: #141a26; border-left-color: #2a3442; }
+        .sidebar.closed { transform: translateX(100%); }
+        .sidebar-logo { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 2.5rem; }
+        .sidebar-logo i { font-size: 1.8rem; color: #2a7de1; background: #e8f0fe; padding: 0.6rem; border-radius: 14px; }
+        body.dark-mode .sidebar-logo i { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-logo span { font-weight: 700; font-size: 1.5rem; }
+        .sidebar nav { flex: 1; }
+        .sidebar nav a { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 12px; color: #4a5b7a; text-decoration: none; font-weight: 500; transition: 0.15s; margin-bottom: 0.3rem; }
+        .sidebar nav a i { width: 1.4rem; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: #eef4fe; color: #1a67c4; }
+        body.dark-mode .sidebar nav a:hover, body.dark-mode .sidebar nav a.active { background: #1f2a40; color: #6b9ef0; }
+        .sidebar-footer { border-top: 1px solid #e7edf5; padding-top: 1.2rem; margin-top: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #6b7d9c; cursor: pointer; display: flex; align-items: center; gap: 0.6rem; }
+        .sidebar-footer:hover { color: #e74c3c; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; }
+        .sidebar-overlay.show { display: block; }
+
+        .main { flex: 1; margin-right: 260px; padding: 1.8rem 2rem 2.5rem; transition: margin-right 0.3s ease; overflow-x: hidden; width: 100%; }
+        .main.expanded { margin-right: 0; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+        .navbar h1 { font-size: 1.7rem; font-weight: 700; }
+        .navbar-actions { display: flex; align-items: center; gap: 1.2rem; }
+        .navbar-actions button { background: none; border: none; font-size: 1.2rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .navbar-actions button { color: #b0c0d4; }
+        .navbar-actions button:hover { color: #2a7de1; }
+        .lang-dark { display: flex; gap: 0.6rem; }
+        .lang-dark button { background: none; border: none; font-weight: 600; color: #2a7de1; cursor: pointer; font-size: 0.85rem; }
+        .lang-dark .dark-toggle { color: #6b7d9c; }
+        body.dark-mode .lang-dark .dark-toggle { color: #b0c0d4; }
+        .hamburger { display: none; background: none; border: none; font-size: 1.5rem; color: #4a5b7a; cursor: pointer; }
+        body.dark-mode .hamburger { color: #b0c0d4; }
+
+        /* بطاقة الملف الشخصي */
+        .profile-header { background: #ffffff; border-radius: 20px; border: 1px solid #eef2f8; padding: 1.8rem; display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; margin-bottom: 2rem; }
+        body.dark-mode .profile-header { background: #1a1f2b; border-color: #2a3442; }
+        .avatar { width: 80px; height: 80px; background: #e8f0fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; color: #2a7de1; }
+        .profile-info { flex: 1; }
+        .profile-info h2 { font-size: 1.5rem; margin-bottom: 0.2rem; }
+        .profile-info p { color: #6b7d9c; margin: 0.2rem 0; }
+        .badge { display: inline-block; padding: 0.25rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .badge-success { background: #e3f5e9; color: #1f7840; }
+        .badge-danger { background: #fde8e8; color: #c0392b; }
+        .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.4rem; border-radius: 40px; font-weight: 600; border: none; cursor: pointer; transition: 0.15s; font-size: 0.9rem; white-space: nowrap; }
+        .btn-primary { background: #2a7de1; color: white; }
+        .btn-primary:hover { background: #1a67c4; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-secondary { background: #eef2f8; color: #1a253a; }
+        .btn-secondary:hover { background: #dfe6f0; }
+        body.dark-mode .btn-secondary { background: #2a3442; color: #eef2f6; }
+
+        /* التبويبات */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { padding: 0.6rem 1.5rem; border-radius: 30px; background: #eef2f8; border: none; font-weight: 600; cursor: pointer; color: #4a5b7a; transition: 0.15s; }
+        body.dark-mode .tab-btn { background: #2a3442; color: #b0c0d4; }
+        .tab-btn.active { background: #2a7de1; color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .table-wrapper { background: #ffffff; border-radius: 20px; border: 1px solid #eef2f8; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        body.dark-mode .table-wrapper { background: #1a1f2b; border-color: #2a3442; }
+        .table-responsive { overflow-x: auto; padding: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        thead { background: #f9fbfe; border-bottom: 2px solid #eef2f8; }
+        body.dark-mode thead { background: #141a26; border-bottom-color: #2a3442; }
+        th { text-align: right; padding: 0.9rem 1rem; font-weight: 600; color: #4a5b7a; white-space: nowrap; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.3px; }
+        body.dark-mode th { color: #b0c0d4; }
+        td { padding: 0.9rem 1rem; border-bottom: 1px solid #eef2f8; vertical-align: middle; }
+        body.dark-mode td { border-bottom-color: #2a3442; }
+        tr:last-child td { border-bottom: none; }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #8a9bb5; }
+        .empty-state i { font-size: 3rem; margin-bottom: 0.8rem; opacity: 0.5; }
+
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 2000; padding: 1.5rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #ffffff; border-radius: 28px; max-width: 420px; width: 100%; padding: 2rem; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.3); text-align: center; }
+        body.dark-mode .modal { background: #1a1f2b; }
+        .modal h2 { margin-bottom: 0.5rem; }
+        .modal .form-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; justify-content: center; }
+        .modal .form-actions button { padding: 0.6rem 1.8rem; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; }
+        .modal .cancel { background: #eef2f8; color: #1a253a; }
+        .modal .submit { background: #2a7de1; color: white; }
+
+        .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 3000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .toast { padding: 0.8rem 1.5rem; border-radius: 14px; background: white; box-shadow: 0 8px 20px rgba(0,0,0,0.15); font-weight: 500; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; animation: slideIn 0.3s ease; }
+        body.dark-mode .toast { background: #2a3442; color: #eef2f6; }
+        .toast.success { border-right: 4px solid #10B981; }
+        .toast.error { border-right: 4px solid #EF4444; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) { .hamburger { display: block; } .main { margin-right: 0; } .sidebar { transform: translateX(100%); } .sidebar.closed { transform: translateX(100%); } .sidebar.open { transform: translateX(0); } }
+        @media (max-width: 480px) { .profile-header { flex-direction: column; text-align: center; } }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i><span>Zentor</span></div>
+    <nav>
+        <a href="dashboard.html"><i class="fas fa-chart-pie"></i> لوحة التحكم</a>
+        <a href="courses.html"><i class="fas fa-book-open"></i> الكورسات</a>
+        <a href="lessons.html"><i class="fas fa-file-alt"></i> الدروس</a>
+        <a href="lesson-upload.html"><i class="fas fa-upload"></i> رفع درس</a>
+        <a href="live-classes.html"><i class="fas fa-video"></i> البث المباشر</a>
+        <a href="students.html" class="active"><i class="fas fa-users"></i> الطلاب</a>
+        <a href="assignments.html"><i class="fas fa-clipboard-list"></i> الواجبات</a>
+        <a href="exams.html"><i class="fas fa-file-alt"></i> الامتحانات</a>
+        <a href="revenue.html"><i class="fas fa-dollar-sign"></i> الإيرادات</a>
+        <a href="messages.html"><i class="fas fa-comments"></i> الرسائل</a>
+        <a href="settings.html"><i class="fas fa-cog"></i> الإعدادات</a>
+    </nav>
+    <div class="sidebar-footer" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</div>
+</aside>
+
+<div class="main" id="mainContent">
+    <header class="navbar">
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <button class="hamburger" id="hamburgerBtn"><i class="fas fa-bars"></i></button>
+            <h1>👤 ملف الطالب</h1>
+        </div>
+        <div class="navbar-actions">
+            <div class="lang-dark">
+                <button id="langToggle"><i class="fas fa-globe"></i> <span id="langLabel">AR</span></button>
+                <button class="dark-toggle" id="darkToggle"><i class="fas fa-moon"></i></button>
+            </div>
+            <button><i class="fas fa-user-circle" style="font-size:1.6rem;"></i></button>
+        </div>
+    </header>
+
+    <!-- قسم رأس الملف -->
+    <div class="profile-header" id="profileHeader">
+        <div class="avatar" id="studentAvatar"><i class="fas fa-user-graduate"></i></div>
+        <div class="profile-info">
+            <h2 id="studentName">---</h2>
+            <p><i class="fas fa-envelope"></i> <span id="studentEmail"></span></p>
+            <p><i class="fas fa-calendar"></i> انضم: <span id="studentJoined"></span></p>
+            <p><span class="badge" id="studentStatusBadge">نشط</span></p>
+        </div>
+        <div>
+            <button class="btn btn-danger" id="blockToggleBtn"><i class="fas fa-ban"></i> حظر</button>
+        </div>
+    </div>
+
+    <!-- التبويبات -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="courses">الكورسات</button>
+        <button class="tab-btn" data-tab="results">النتائج</button>
+        <button class="tab-btn" data-tab="attendance">الحضور</button>
+        <button class="tab-btn" data-tab="activity">النشاط</button>
+    </div>
+
+    <!-- المحتوى -->
+    <div id="tab-courses" class="tab-content active">
+        <div class="table-wrapper"><div class="table-responsive"><table><thead><tr><th>الكورس</th><th>التقدم</th><th>تاريخ التسجيل</th></tr></thead><tbody id="coursesTableBody"><tr><td colspan="3"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr></tbody></table></div></div>
+    </div>
+    <div id="tab-results" class="tab-content">
+        <div class="table-wrapper"><div class="table-responsive"><table><thead><tr><th>الامتحان</th><th>الدرجة</th><th>التاريخ</th></tr></thead><tbody id="resultsTableBody"><tr><td colspan="3"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr></tbody></table></div></div>
+    </div>
+    <div id="tab-attendance" class="tab-content">
+        <div class="table-wrapper"><div class="table-responsive"><table><thead><tr><th>الجلسة</th><th>التاريخ</th><th>الحالة</th></tr></thead><tbody id="attendanceTableBody"><tr><td colspan="3"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr></tbody></table></div></div>
+    </div>
+    <div id="tab-activity" class="tab-content">
+        <div class="table-wrapper"><div class="table-responsive"><table><thead><tr><th>النشاط</th><th>التفاصيل</th><th>التوقيت</th></tr></thead><tbody id="activityTableBody"><tr><td colspan="3"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><br>جاري التحميل...</div></td></tr></tbody></table></div></div>
+    </div>
+</div>
+
+<!-- مودال تأكيد الحظر -->
+<div class="modal-overlay" id="blockModal">
+    <div class="modal">
+        <i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:#e74c3c;margin-bottom:1rem;"></i>
+        <h2 id="blockModalTitle">تأكيد</h2>
+        <p id="blockModalMsg" style="color:#6b7d9c;margin:12px 0 24px;"></p>
+        <div class="form-actions">
+            <button class="btn btn-secondary cancel" id="blockCancelBtn">إلغاء</button>
+            <button class="btn btn-danger submit" id="blockConfirmBtn">تأكيد</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBOd-cHm8J84BMwdlP8a3zOVlK8sboUFj0",
+        authDomain: "zentor-caaf1.firebaseapp.com",
+        projectId: "zentor-caaf1",
+        storageBucket: "zentor-caaf1.firebasestorage.app",
+        messagingSenderId: "681267238383",
+        appId: "1:681267238383:web:0c93fb405bfd6b5903921a",
+        measurementId: "G-X80GNJHMS5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let TEACHER_ID = '';
+    let STUDENT_ID = '';
+
+    // استخراج studentId من الرابط (?id=...)
+    const urlParams = new URLSearchParams(window.location.search);
+    STUDENT_ID = urlParams.get('id') || '';
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) { window.location.href = 'login.html'; return; }
+        TEACHER_ID = user.uid;
+        // التحقق من حالة المعلم
+        const teacherDocRef = doc(db, 'teachers', user.uid);
+        try {
+            const snap = await getDoc(teacherDocRef);
+            if (!snap.exists() || snap.data().status === 'pending') {
+                await signOut(auth);
+                window.location.href = 'login.html';
+                return;
+            }
+        } catch(e) {}
+        if (!STUDENT_ID) {
+            window.location.href = 'students.html';
+            return;
+        }
+        document.body.classList.add('auth-ready');
+        loadStudentData();
+        listenToCollections();
+    });
+
+    // إعدادات الشريط الجانبي
+    const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebarOverlay');
+    document.getElementById('hamburgerBtn').addEventListener('click', () => { sidebar.classList.add('open'); overlay.classList.add('show'); });
+    overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+    document.querySelectorAll('.sidebar nav a').forEach(link => link.addEventListener('click', () => { if (window.innerWidth <= 768) { sidebar.classList.remove('open'); overlay.classList.remove('show'); } }));
+    document.getElementById('logoutBtn').addEventListener('click', () => { if (confirm('هل تريد تسجيل الخروج؟')) signOut(auth).then(() => window.location.href = 'login.html'); });
+
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div'); toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas ${type==='success'?'fa-check-circle':'fa-exclamation-circle'}"></i> ${msg}`;
+        container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+    }
+
+    // تحميل بيانات الطالب الأساسية
+    async function loadStudentData() {
+        try {
+            const studentRef = doc(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID);
+            const studentSnap = await getDoc(studentRef);
+            if (!studentSnap.exists()) {
+                showToast('الطالب غير موجود', 'error');
+                return;
+            }
+            const data = studentSnap.data();
+            document.getElementById('studentName').textContent = data.name || 'غير معروف';
+            document.getElementById('studentEmail').textContent = data.email || '—';
+            document.getElementById('studentJoined').textContent = data.registeredAt ? new Date(data.registeredAt.seconds * 1000).toLocaleDateString('ar-EG') : '—';
+            const blocked = data.blocked || false;
+            const badge = document.getElementById('studentStatusBadge');
+            badge.textContent = blocked ? 'محظور' : 'نشط';
+            badge.className = `badge ${blocked ? 'badge-danger' : 'badge-success'}`;
+            const blockBtn = document.getElementById('blockToggleBtn');
+            blockBtn.innerHTML = blocked ? '<i class="fas fa-unlock"></i> إلغاء الحظر' : '<i class="fas fa-ban"></i> حظر';
+            blockBtn.className = blocked ? 'btn btn-secondary' : 'btn btn-danger';
+            blockBtn.onclick = () => openBlockModal(blocked);
+        } catch (err) {
+            showToast('خطأ في تحميل بيانات الطالب', 'error');
+        }
+    }
+
+    // فتح مودال الحظر
+    const blockModal = document.getElementById('blockModal');
+    function openBlockModal(currentlyBlocked) {
+        document.getElementById('blockModalTitle').textContent = currentlyBlocked ? 'إلغاء الحظر' : 'حظر الطالب';
+        document.getElementById('blockModalMsg').textContent = currentlyBlocked ? 'هل تريد إلغاء حظر هذا الطالب؟' : 'هل تريد حظر هذا الطالب؟';
+        blockModal.classList.add('active');
+        document.getElementById('blockConfirmBtn').onclick = async () => {
+            try {
+                await updateDoc(doc(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID), { blocked: !currentlyBlocked });
+                showToast(currentlyBlocked ? 'تم إلغاء الحظر' : 'تم حظر الطالب');
+                blockModal.classList.remove('active');
+                loadStudentData(); // تحديث الواجهة
+            } catch (err) { showToast('خطأ: ' + err.message, 'error'); }
+        };
+    }
+    document.getElementById('blockCancelBtn').addEventListener('click', () => blockModal.classList.remove('active'));
+
+    // استماع إلى المجموعات الفرعية (كورسات، نتائج، حضور، نشاط)
+    function listenToCollections() {
+        // الكورسات
+        const coursesQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'courses'), orderBy('enrolledAt', 'desc'));
+        onSnapshot(coursesQuery, snapshot => {
+            const tbody = document.getElementById('coursesTableBody');
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-book"></i><p>لا يوجد كورسات</p></div></td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const row = `<tr><td>${d.courseName || '—'}</td><td>${d.progress || 0}%</td><td>${d.enrolledAt ? new Date(d.enrolledAt.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+
+        // النتائج
+        const resultsQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'results'), orderBy('date', 'desc'));
+        onSnapshot(resultsQuery, snapshot => {
+            const tbody = document.getElementById('resultsTableBody');
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-chart-bar"></i><p>لا توجد نتائج</p></div></td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const row = `<tr><td>${d.examTitle || '—'}</td><td>${d.score || 0}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td></tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+
+        // الحضور
+        const attendanceQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'attendance'), orderBy('date', 'desc'));
+        onSnapshot(attendanceQuery, snapshot => {
+            const tbody = document.getElementById('attendanceTableBody');
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-calendar-check"></i><p>لا يوجد سجل حضور</p></div></td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const status = d.present ? 'حاضر' : 'غائب';
+                const badgeClass = d.present ? 'badge-success' : 'badge-danger';
+                const row = `<tr><td>${d.sessionTitle || '—'}</td><td>${d.date ? new Date(d.date.seconds * 1000).toLocaleDateString('ar-EG') : '—'}</td><td><span class="badge ${badgeClass}">${status}</span></td></tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+
+        // النشاط
+        const activityQuery = query(collection(db, 'teachers', TEACHER_ID, 'students', STUDENT_ID, 'activity'), orderBy('timestamp', 'desc'));
+        onSnapshot(activityQuery, snapshot => {
+            const tbody = document.getElementById('activityTableBody');
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><i class="fas fa-history"></i><p>لا يوجد نشاط</p></div></td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const row = `<tr><td>${d.action || '—'}</td><td>${d.details || '—'}</td><td>${d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleString('ar-EG') : '—'}</td></tr>`;
+                tbody.innerHTML += row;
+            });
+        });
+    }
+
+    // التبويبات
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    // إغلاق المودال عند الضغط خارجه
+    blockModal.addEventListener('click', (e) => { if (e.target === blockModal) blockModal.classList.remove('active'); });
+
+    // لغة ووضع ليلي
+    let lang = 'ar';
+    const langToggle = document.getElementById('langToggle'), darkToggle = document.getElementById('darkToggle'), langLabel = document.getElementById('langLabel');
+    function applyLanguage(lc) {
+        document.querySelector('.navbar h1').textContent = lc==='ar'?'👤 ملف الطالب':'👤 Student Profile';
+        document.querySelectorAll('.tab-btn[data-tab="courses"]').textContent = lc==='ar'?'الكورسات':'Courses';
+        document.querySelectorAll('.tab-btn[data-tab="results"]').textContent = lc==='ar'?'النتائج':'Results';
+        document.querySelectorAll('.tab-btn[data-tab="attendance"]').textContent = lc==='ar'?'الحضور':'Attendance';
+        document.querySelectorAll('.tab-btn[data-tab="activity"]').textContent = lc==='ar'?'النشاط':'Activity';
+        if (lc === 'ar') { document.documentElement.dir = 'rtl'; } else { document.documentElement.dir = 'ltr'; }
+    }
+    langToggle.addEventListener('click', () => { lang = lang==='ar'?'en':'ar'; langLabel.textContent = lang.toUpperCase(); applyLanguage(lang); });
+    darkToggle.addEventListener('click', () => { document.body.classList.toggle('dark-mode'); darkToggle.innerHTML = document.body.classList.contains('dark-mode')?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>'; });
+    applyLanguage('ar');
+</script>
+</body>
+</html>
