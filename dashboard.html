@@ -312,6 +312,43 @@
       });
     }
 
+async function fixOldTeachers() {
+    const teachersSnap = await getDocs(collection(db, 'teachers'));
+    for (const teacherDoc of teachersSnap.docs) {
+        const teacherId = teacherDoc.id;
+        
+        // إنشاء profile إذا لم يكن موجوداً
+        const profileRef = doc(db, 'teachers', teacherId, 'settings', 'profile');
+        const profileSnap = await getDoc(profileRef);
+        if (!profileSnap.exists()) {
+            await setDoc(profileRef, {
+                name: 'معلم',
+                email: teacherDoc.data().email || '',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                photoURL: null,
+                bio: '',
+                specialties: []
+            });
+        }
+        
+        // إنشاء preferences إذا لم تكن موجودة
+        const prefRef = doc(db, 'teachers', teacherId, 'settings', 'preferences');
+        const prefSnap = await getDoc(prefRef);
+        if (!prefSnap.exists()) {
+            await setDoc(prefRef, {
+                status: 'active', // ⚠️ اجعلهم نشطين فوراً
+                language: 'ar',
+                darkMode: false,
+                notifications: { email: true, push: true, students: true, courses: true },
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            });
+        }
+    }
+    console.log('✅ تم تحديث جميع المعلمين');
+}
+    
     function listenToUpdates() {
       const base = `teachers/${TEACHER_ID}`;
       onSnapshot(collection(db, base, 'students'), snap => document.getElementById('totalStudents').textContent = snap.size);
